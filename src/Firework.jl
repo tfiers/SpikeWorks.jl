@@ -1,4 +1,4 @@
-module SpikeLab
+module Firework
 
 using Reexport
 using Distributions
@@ -16,7 +16,7 @@ include("units.jl")
 include("spikefeed.jl")
 include("distributions.jl")
 # ↪ Don't export LogNormal, to not conflict with Distributions.jl
-#   Instead, use `SpikeLab.LogNormal` to use our parametrization.
+#   Instead, use `Firework.LogNormal` to use our parametrization.
 include("misc.jl");       export to_timesteps
 include("spiketrain.jl"); export SpikeTrain
 include("eqparse.jl");    export @eqs

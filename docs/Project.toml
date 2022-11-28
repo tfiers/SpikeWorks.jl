@@ -1,3 +1,3 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-SpikeLab = "fe4ab31d-2284-4e18-9761-4109e720cf88"
+Firework = "fe4ab31d-2284-4e18-9761-4109e720cf88"

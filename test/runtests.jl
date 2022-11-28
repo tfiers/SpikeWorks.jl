@@ -1,5 +1,5 @@
 using Test
 using Documenter
-using SpikeLab
+using Firework
 
-doctest(SpikeLab)
+doctest(Firework)

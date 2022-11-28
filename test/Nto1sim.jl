@@ -1,6 +1,6 @@
-using SpikeLab
-using SpikeLab: SpikingInput, SpikeFeed, CVector, SimState, LogNormal
-using SpikeLab.Units
+using Firework
+using Firework: SpikingInput, SpikeFeed, CVector, SimState, LogNormal
+using Firework.Units
 
 # Parameters
 # ‾‾‾‾‾‾‾‾‾‾

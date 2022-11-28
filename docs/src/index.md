@@ -1,4 +1,4 @@
-# SpikeLab.jl
+# Firework.jl
 
 ## Model specification
 ```
@@ -12,7 +12,7 @@ poisson_spikes
 
 ## Distributions
 ```@docs
-SpikeLab.LogNormal
+Firework.LogNormal
 ```
 
 ## Discrete time
@@ -23,8 +23,8 @@ to_timesteps
 ## SpikeFeed
 
 ```@docs
-SpikeLab.SpikeFeed
-SpikeLab.advance_to!
+Firework.SpikeFeed
+Firework.advance_to!
 ```
 
 ### Usage
@@ -32,7 +32,7 @@ SpikeLab.advance_to!
 Import explicitly (`SpikeFeed` is not exported
 as it is not needed in standard end use).
 ```jldoctest sf
-julia> using SpikeLab: SpikeFeed, advance_to!
+julia> using Firework: SpikeFeed, advance_to!
 ```
 \
 

@@ -1,5 +1,5 @@
 
-using SpikeLab: process_eqs!
+using Firework: process_eqs!
 
 izh_expr = quote
 
