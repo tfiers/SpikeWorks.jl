@@ -1,65 +1,64 @@
 
 module Units
 
-const giga  = 1e9
-const mega  = 1e6
-const kilo  = 1e3
-const milli = 1e-3
-const centi = 1e-2
-const micro = 1e-6
-const nano  = 1e-9
-const pico  = 1e-12
-export mega, kilo, milli, centi, micro, nano, pico
+# macros not implemented lol.
+# See discourse question, and @alias and @NT macros in mytb.
+# pkg ConstMacros.jl or sth, lol. GlobalMacros.jl
+# `using GlobalMacros: @const, @typed, @export`
+@export @const begin
 
-const second = 1.0
-const Hz = 1 / second
-const ms = milli * second
-const minute = 60 * second
-const hour = 60 * minute
-export second, Hz, ms, minute, hour
+    giga  = 1e9
+    mega  = 1e6
+    kilo  = 1e3
+    milli = 1e-3
+    centi = 1e-2
+    micro = 1e-6
+    nano  = 1e-9
+    pico  = 1e-12
 
-const seconds = second
-const minutes = minute
-const hours = hour
-export seconds, minutes, hours
-# Plural makes more sense in e.g. `10minutes`.
-# Singular makes more sense in `f(x, unit = minute)` or `x = 10 * minute`.
+    second = 1.0
+    Hz = 1 / second
+    ms = milli * second
+    minute = 60 * second
+    hour = 60 * minute
 
-const metre = 1.0
-const meter = metre
-const cm = centi * metre
-const mm = milli * metre
-const μm = micro * metre
-const nm = nano * metre
-export metre, meter, cm, mm, μm, nm
+    seconds = second
+    minutes = minute
+    hours = hour
+    # Plural makes more sense in e.g. `10minutes`.
+    # Singular makes more sense in `f(x, unit = minute)` or `x = 10 * minute`.
 
-const ampere = 1.0
-const mA = milli * ampere
-const μA = micro * ampere
-const nA = nano * ampere
-const pA = pico * ampere
-export ampere, mA, μA, nA, pA
+    metre = 1.0
+    meter = metre
+    cm = centi * metre
+    mm = milli * metre
+    μm = micro * metre
+    nm = nano * metre
 
-const volt = 1.0
-const mV = milli * volt
-const μV = micro * volt
-const nV = nano * volt
-export volt, mV, μV, nV
+    ampere = 1.0
+    mA = milli * ampere
+    μA = micro * ampere
+    nA = nano * ampere
+    pA = pico * ampere
 
-const siemens = ampere / volt
-const ohm = 1 / siemens
-const mS = milli * siemens
-const nS = nano * siemens
-const pS = pico * siemens
-const Mohm = mega * ohm
-const Gohm = giga * ohm
-export siemens, ohm, mS, nS, pS, Mohm
+    volt = 1.0
+    mV = milli * volt
+    μV = micro * volt
+    nV = nano * volt
 
-const coulomb = ampere * second
-const farad = coulomb / volt
-const μF = micro * farad
-const nF = nano * farad
-const pF = pico * farad
-export coulomb, farad, μF, nF, pF
+    siemens = ampere / volt
+    ohm = 1 / siemens
+    mS = milli * siemens
+    nS = nano * siemens
+    pS = pico * siemens
+    Mohm = mega * ohm
+    Gohm = giga * ohm
+
+    coulomb = ampere * second
+    farad = coulomb / volt
+    μF = micro * farad
+    nF = nano * farad
+    pF = pico * farad
+end
 
 end # module
