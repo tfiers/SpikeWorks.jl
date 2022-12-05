@@ -1,5 +1,11 @@
 # Firework
 
+Status: actively being developed, not ready for use.
+
+But! Feel free to read the [source](src/), and the examples in [`test/`](/test).\
+Play with it, and get in touch!\
+Do you have any specific wishes or use cases?
+
 ⋮
 
 We use unicode variable names, like `τₑ` (instead of `tau_e`).
