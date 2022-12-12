@@ -2,7 +2,7 @@
 """
     poisson_spikes(r, T)
 
-Generate Poisson spiketimes with firing rate `r` on the time interval `[0, T]`.
+Generate Poisson spiketimes with mean firing rate `r` on the time interval `[0, T]`.
 
 More precisely, simulate a Poisson process by drawing inter-spike-intervals from an
 Exponential distribution with rate parameter `r`, accumulating them until `T` is reached.
