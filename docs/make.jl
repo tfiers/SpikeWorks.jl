@@ -17,9 +17,9 @@ end
 
 using Documenter
 using Firework
-println("Calling `makedocs`")
+println("Running `Documenter.makedocs`")
 makedocs(
     sitename = "Firework",
     modules = [Firework],
-    doctest = false,         # Done in runtests.jl
+    doctest = true,
 )

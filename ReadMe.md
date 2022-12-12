@@ -17,9 +17,4 @@ for how to input many unicode characters in Julia environments (like in Jupyter 
 
 ## How to hack on the code
 
-Make a file in `test/` that uses the edited package code, then
-```julia
-pkg> activate .
-julia> using Revise
-julia> include("text/file.jl")
-```
+[See the readme in [`test/`](test)].

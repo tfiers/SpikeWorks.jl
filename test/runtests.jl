@@ -1,5 +1,6 @@
-using Test
-using Documenter
 using Firework
+using Test
 
-doctest(Firework)
+@testset "Firework.jl" begin
+
+end
