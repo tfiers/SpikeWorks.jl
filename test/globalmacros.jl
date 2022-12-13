@@ -54,4 +54,7 @@ using MacroTools: striplines
     end
 
     # Test: a = b = 3 :)
+
+    # Test: the actual macro calls; with @macroexpand[1]
+    # (caught bugs specific to those, manually in repl (units.jl)).
 end

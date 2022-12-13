@@ -73,7 +73,7 @@ is_macrocall(ex) = isexpr(ex, :macrocall)
 function rewrite_macrocall(ex, f)
     @assert is_macrocall(ex)
     name, info, contents = ex.args
-    return Expr(name, info, f(contents))
+    return Expr(:macrocall, (name, info, f(contents))...)
 end
 
 """
