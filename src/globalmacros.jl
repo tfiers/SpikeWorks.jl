@@ -101,12 +101,11 @@ and destructuring (`x, y = 3, 5`) is not yet supported.
 [typed globals]: https://docs.julialang.org/en/v1/manual/variables-and-scoping/#man-typed-globals
 """
 macro typed(ex)
-    m = @__MODULE__
-    esc(annotate_all_assignments_with_type(m, ex))
+    esc(annotate_all_assignments_with_type(ex))
 end
-annotate_all_assignments_with_type(m, ex) = rewrite_assignments(ex, e -> annotate_with_type(m, e))
+annotate_all_assignments_with_type(ex) = rewrite_assignments(ex, annotate_with_type)
 
-function annotate_with_type(m, ex)
+function annotate_with_type(ex)
     @assert is_assignment(ex)
     lhs, rhs = ex.args
     if lhs isa Symbol
@@ -121,7 +120,7 @@ function annotate_with_type(m, ex)
     # Handle literals differently than more complex expressions.
     # See https://docs.julialang.org/en/v1/devdocs/ast/
     # I.e. we want to catch the "atoms" in the 'else' clause
-    if rhs isa Expr
+    if typeof(rhs) ∈ [Expr, Symbol]
         # Some example right-hand sides that are `Expr`s (see ast docs above for more):
         # f(…), [1, 2], @blah …, y[1], y.a, 3im, 11111111111111111111, if …, (1,2)
         #
@@ -143,7 +142,7 @@ function annotate_with_type(m, ex)
         # The rhs probably has no side effects.
         # So, we return a simpler expression. The goal is user inspectability;
         # i.e, for simple cases, does `@macroexpand` return something scary or not.
-        T = @eval(m, typeof($rhs))
+        T = @eval typeof($rhs)
         return :( $lhs::$(Symbol(T)) = $rhs )
     end
 end
