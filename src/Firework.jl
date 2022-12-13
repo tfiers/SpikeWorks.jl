@@ -2,7 +2,7 @@ module Firework
 
 using Reexport
 using Distributions
-# ↪ Don't `@reexport Distriubtions`: this macro somehow also exports our own `LogNormal`
+# ↪ Don't `@reexport Distributions`: this macro somehow also exports our own `LogNormal`
 #   (see below), creating a conflict.
 @reexport using ComponentArrays: CVector                # Alias for ComponentVector
 @reexport using ComponentArrays: Axis, ComponentVector  # For unqualified typenames in errors
@@ -12,7 +12,14 @@ using Base: RefValue
 #    change. Better would thus be to `MyStruct{T<:Ref{Int}} … field:T`,
 #    instead of `MyStruct … field:RefValue{Int}`, as it is now.
 
-include("units.jl")
+using Base: mapany
+using Base.Meta: isexpr
+include("globalmacros.jl")
+export @constants,
+       @typed,
+       @export_all
+
+# include("units.jl")
 include("spikefeed.jl")
 include("distributions.jl")
 # ↪ Don't export LogNormal, to not conflict with Distributions.jl

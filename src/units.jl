@@ -1,10 +1,6 @@
 
 module Units
 
-# macros not implemented lol.
-# See discourse question, and @alias and @NT macros in mytb.
-# pkg ConstMacros.jl or sth, lol. GlobalMacros.jl
-# `using GlobalMacros: @const, @typed, @export`
 @export @const begin
 
     giga  = 1e9
