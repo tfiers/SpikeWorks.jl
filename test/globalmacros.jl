@@ -60,4 +60,7 @@ using MacroTools: striplines
     # message checking when assigning to, and exporting from (and assigning in) a mini
     # module).
     # These tests will probably be more readable, even, than the above weird function names.
+
+    # Test v = vᵣ
+    # (`UndefVarError: vᵣ not defined`, eval in @__MODULE__)
 end

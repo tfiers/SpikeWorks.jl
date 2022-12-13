@@ -101,11 +101,12 @@ and destructuring (`x, y = 3, 5`) is not yet supported.
 [typed globals]: https://docs.julialang.org/en/v1/manual/variables-and-scoping/#man-typed-globals
 """
 macro typed(ex)
-    esc(annotate_all_assignments_with_type(ex))
+    m = @__MODULE__
+    esc(annotate_all_assignments_with_type(m, ex))
 end
-annotate_all_assignments_with_type(ex) = rewrite_assignments(ex, annotate_with_type)
+annotate_all_assignments_with_type(m, ex) = rewrite_assignments(ex, e -> annotate_with_type(m, e))
 
-function annotate_with_type(ex)
+function annotate_with_type(m, ex)
     @assert is_assignment(ex)
     lhs, rhs = ex.args
     if lhs isa Symbol
@@ -142,8 +143,8 @@ function annotate_with_type(ex)
         # The rhs probably has no side effects.
         # So, we return a simpler expression. The goal is user inspectability;
         # i.e, for simple cases, does `@macroexpand` return something scary or not.
-        T = Symbol(@eval typeof($rhs))
-        return :( $lhs::$T = $rhs )
+        T = @eval(m, typeof($rhs))
+        return :( $lhs::$(Symbol(T)) = $rhs )
     end
 end
 
