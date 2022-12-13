@@ -15,9 +15,9 @@ using Base: RefValue
 using Base: mapany
 using Base.Meta: isexpr
 include("globalmacros.jl")
-export @constants,
+export @constants,  # alt name: @consts. but no, tongue twister.
        @typed,
-       @export_all
+       @export_all  # alt name ideas: @exportall. @batchexport.  (cannot have @export, alas).
 
 include("units.jl")
 include("spikefeed.jl")

@@ -55,6 +55,9 @@ using MacroTools: striplines
 
     # Test: a = b = 3 :)
 
-    # Test: the actual macro calls; with @macroexpand[1]
-    # (caught bugs specific to those, manually in repl (units.jl)).
+    # Test: the actual macro calls; with @macroexpand[1] (caught bugs specific to those,
+    # manually in repl (units.jl)). ..and w/o macroexpand, just testing the behaviour (error
+    # message checking when assigning to, and exporting from (and assigning in) a mini
+    # module).
+    # These tests will probably be more readable, even, than the above weird function names.
 end

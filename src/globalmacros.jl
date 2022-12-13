@@ -128,6 +128,7 @@ function annotate_with_type(ex)
         # execute them twice. Hence, a temporary variable, with a new unique name, scoped
         # away in a `let` block, with the real name 'escaped' using `global`.
         # Thanks to Simeon Schaub: https://discourse.julialang.org/t/90818/2
+        # Alternative to `let` & `global` is to use `local` (thanks Mosé Giordano).
         tmp = gensym(lhs)
         return :(
             let $tmp = $rhs
