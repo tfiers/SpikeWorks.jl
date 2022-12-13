@@ -19,7 +19,7 @@ export @constants,
        @typed,
        @export_all
 
-# include("units.jl")
+include("units.jl")
 include("spikefeed.jl")
 include("distributions.jl")
 # ↪ Don't export LogNormal, to not conflict with Distributions.jl

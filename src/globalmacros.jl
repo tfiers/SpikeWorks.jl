@@ -37,7 +37,8 @@ function declare_const(ex)
 end
 
 rewrite_assignments(ex, f, g = identity) =
-    if     is_assignment(ex)  f(ex)
+    if     is_macrocall(ex)   rewrite_macrocall(ex, e -> rewrite_assignments(e, f, g))
+    elseif is_assignment(ex)  f(ex)
     elseif is_const_ass(ex)   g(ex)
     elseif is_block(ex)       rewrite_all_in_block(ex, e -> rewrite_assignments(e, f, g))
     else                      ex
@@ -67,6 +68,13 @@ is_block(ex) = isexpr(ex, :block)
 
 is_const_ass(ex) = isexpr(ex, :const) && is_assignment(only(ex.args))
 
+is_macrocall(ex) = isexpr(ex, :macrocall)
+
+function rewrite_macrocall(ex, f)
+    @assert is_macrocall(ex)
+    name, info, contents = ex.args
+    return Expr(name, info, f(contents))
+end
 
 """
     @typed
@@ -93,7 +101,7 @@ and destructuring (`x, y = 3, 5`) is not yet supported.
 [typed globals]: https://docs.julialang.org/en/v1/manual/variables-and-scoping/#man-typed-globals
 """
 macro typed(ex)
-    annotate_all_assignments_with_type(ex)
+    esc(annotate_all_assignments_with_type(ex))
 end
 annotate_all_assignments_with_type(ex) = rewrite_assignments(ex, annotate_with_type)
 
@@ -178,7 +186,7 @@ expands to:
 It is also not combinable with [`@typed`](@ref).
 """
 macro export_all(ex)
-    add_exports_for_all(ex)
+    esc(add_exports_for_all(ex))
 end
 add_exports_for_all(ex) = rewrite_assignments(ex, add_export, add_export)
 

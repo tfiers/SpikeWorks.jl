@@ -1,7 +1,11 @@
 
 module Units
 
-@export @const begin
+# using ..Firework: @export_all, @constants
+
+# @export_all @constants begin
+# @constants @export_all begin
+ex = quote
 
     giga  = 1e9
     mega  = 1e6
@@ -56,5 +60,9 @@ module Units
     nF = nano * farad
     pF = pico * farad
 end
+
+using ..Firework
+
+eval(Firework.declare_all_constant(Firework.add_exports_for_all(ex)))
 
 end # module
