@@ -5,9 +5,9 @@
 Wrapper around a sorted list of spike times. Additionally, has a `duration` property. (The
 spikes must occur within the time interval `[0, duration]`. So no negative spike times).
 """
-struct SpikeTrain
-    spiketimes::Vector{Float64}
-    duration::Float64
+struct SpikeTrain{T}
+    spiketimes::Vector{T}
+    duration::T
 
     SpikeTrain(spiketimes, duration; checksorted = true, makecopy = false) = begin
         spiketimes = makecopy ? copy(spiketimes) : spiketimes

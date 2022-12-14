@@ -19,10 +19,11 @@ using Firework: LogNormal
     Eᵢ = -80 * mV            # Reversal potential at inhibitory synapses
     τ  =   7 * ms            # Time constant for synaptic conductances' decay
 end
+
 # Conductance-based Izhikevich neuron model
 coba_izh_neuron = NeuronModel(
-    # Simulated variables, and their initial values
-    x₀ = (
+    # Simulated variables and their initial values
+    (
         # Izhikevich variables
         v   = vᵣ,      # Membrane potential
         u   = 0 * pA,  # Adaptation current
@@ -30,8 +31,9 @@ coba_izh_neuron = NeuronModel(
         gₑ  = 0 * nS,  # = Sum over all exc. synapses
         gᵢ  = 0 * nS,  # = Sum over all inh. synapses
     ),
-    # Differential equations: provide time derivatives (in `Δ`) of simulated vars
-    diffeqs = (Δ, vars) -> begin
+    # Differential equations: calculate time derivatives of simulated vars
+    # (and store them "in-place", in `Δ`).
+    (vars, Δ) -> begin
         v, u, gₑ, gᵢ = vars
         # [can use `(; u, v) = vars` syntax for diff order; no @unpack needed]
 
@@ -45,19 +47,13 @@ coba_izh_neuron = NeuronModel(
         # Synaptic conductance decay
         Δ.gₑ = -gₑ / τ
         Δ.gᵢ = -gᵢ / τ
-    end,
-    spiking_condition = (vars) -> (vars.v ≥ vₛ),
-    on_self_spike = (vars) -> begin
+    end;
+    has_spiked = (vars) -> (vars.v ≥ vₛ),
+    on_self_spike! = (vars) -> begin
         vars.v = vᵣ
         vars.u += Δu
     end
 )
-
-# Simulation
-@typed begin
-    Δt = 0.1ms      # Sim timestep
-    T  = 10seconds  # Sim length ('recording duration')
-end
 
 
 # Inputs
@@ -66,7 +62,6 @@ end
 @typed begin
     Nₑ = 40
     Nᵢ = 10
-    N = Nₑ + Nᵢ
     Δgₑ = 60nS / Nₑ
     Δgᵢ = 60nS / Nᵢ
 end
@@ -76,26 +71,27 @@ neuron_type(i) = if (i ≤ Nₑ)  :exc
                  else         :inh
                  end
 
-on_spike_arrival(pre, post) =
+on_spike_arrival!(post, pre) =
     if neuron_type(pre) == :exc
         post.gₑ += Δgₑ
     else
         post.gᵢ += Δgᵢ
     end
 
+T  = 10seconds  # Sim length ('recording duration')
+
 # Firing rates λ for the Poisson inputs
 fr_distr = LogNormal(median = 4Hz, g = 2)
+N = Nₑ + Nᵢ
 λs = rand(fr_distr, N)
 spiketrains = [poisson_spiketrain(λ, T) for λ in λs]
 
-m = Nto1Model(spiketrains, on_spike_arrival, coba_izh_neuron)
-
-
-
+model = Nto1Model(coba_izh_neuron, spiketrains, on_spike_arrival!)
+Δt = 0.1ms      # Sim timestep
 
 using Firework: CVector
-# ↪ For terser error msgs: unqualified names
+# ↪ For terser error msgs (unqualified names)
 
-# s = sim(m, init, params, T, Δt)
-s = init_sim(init, params, T, Δt)
-s = step!(s, m)
+rec = sim(model, Δt)
+# s = init_sim(model, Δt)
+# s = step!(s, m)
