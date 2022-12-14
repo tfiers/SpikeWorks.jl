@@ -32,7 +32,8 @@ coba_izh_neuron = NeuronModel(
     ),
     # Differential equations: provide time derivatives (in `Δ`) of simulated vars
     diffeqs = (Δ, vars) -> begin
-        @unpack v, u, gₑ, gᵢ = vars
+        v, u, gₑ, gᵢ = vars
+        # [can use `(; u, v) = vars` syntax for diff order; no @unpack needed]
 
         # Conductance-based synaptic current
         Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
