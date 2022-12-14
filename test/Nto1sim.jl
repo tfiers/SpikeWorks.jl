@@ -2,7 +2,7 @@ using Firework
 using Firework.Units
 using Firework: LogNormal
 
-# Neuron model params
+# Neuron params
 @typed begin
     # Izhikevich params
     C  =  100    * pF        # Cell capacitance
@@ -19,11 +19,12 @@ using Firework: LogNormal
     Eᵢ = -80 * mV            # Reversal potential at inhibitory synapses
     τ  =   7 * ms            # Time constant for synaptic conductances' decay
 end
-coba_izh_neuron = NeuronModel(  # "Conductance-based Izhikevich neuron model"
+# Conductance-based Izhikevich neuron model
+coba_izh_neuron = NeuronModel(
     # Simulated variables, and their initial values
     x₀ = (
         # Izhikevich variables
-        v   =  vᵣ,     # Membrane potential
+        v   = vᵣ,      # Membrane potential
         u   = 0 * pA,  # Adaptation current
         # Synaptic conductances g
         gₑ  = 0 * nS,  # = Sum over all exc. synapses

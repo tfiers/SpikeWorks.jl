@@ -1,27 +1,28 @@
 
-struct NeuronModel_{V,D,F,G,H}
-    vars          ::V
-    derivs        ::D
-    diffeqs       ::F
-    has_spiked    ::G
-    on_self_spike ::H
+@kwdef struct NeuronModel_{V,F,G,H}
+    x₀                 ::V            # You can type the `₀` as \_0<tab>
+    diffeqs            ::F
+    spiking_condition  ::G
+    on_self_spike      ::H
 end
 NeuronModel = NeuronModel_
 
-NeuronModel_(x₀, f, g, h) = begin
-    vars = pack(x₀)
-    return NeuronModel(vars, derivatives(vars), f, g, h)
-end
-pack(; vars...) = CVector(; vars...)
-derivatives(vars) = zero(vars/second)
+# If you don't want to type `x₀` (with its subscript):
+#   provide it (i.e. 'the simvars and their initial values') as unnamed first argument
+NeuronModel_(x₀; kw...) = NeuronModel(; x₀, kw...)
 
 
 
 # Multiplexed spiketrains
+# (i.e. multiple spiketrains merged into one 'channel')
 struct SpikeMux_
-    spikes::SpikeTrain
-    sourceIDs::Vector{Int}
-    # add: lengths== assert
+    train      ::SpikeTrain
+    sourceIDs  ::Vector{Int}
+
+    SpikeMux_(t, s) = begin
+        @assert length(s) == length(t)
+        new(t, s)
+    end
 end
 SpikeMux = SpikeMux_
 
@@ -54,12 +55,19 @@ function multiplex(
 end
 
 Base.convert(::Type{SpikeMux}, x::AbstractVector{SpikeTrain}) = multiplex(x)
+# ↪ Used by Nto1Model's default `::Any` constructor
 
 
 
 struct Nto1Model_{N<:NeuronModel, F}
-    input             ::SpikeMux
     neuron            ::N
+    input             ::SpikeMux
     on_spike_arrival  ::F  # f(spike_source_ID, neuron.vars)
 end
 Nto1Model = Nto1Model_
+
+
+pack(; vars...) = CVector(; vars...)
+derivatives(vars) = zero(vars/second)
+# vars = pack(x₀)
+# (vars, derivatives(vars))

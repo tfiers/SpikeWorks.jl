@@ -30,7 +30,9 @@ include("eqparse.jl");    export @eqs
 
 # include("sim__old_tmp.jl"); export Model, sim, init_sim, step!, SimState
 
+@reexport using UnPack: @unpack
 using ComponentArrays: CVector
+using Base: @kwdef
 include("sim.jl")
 export NeuronModel,
        Nto1Model
