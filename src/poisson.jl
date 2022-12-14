@@ -33,4 +33,4 @@ end
 #   https://github.com/JuliaStats/Rmath-julia/blob/master/src/qpois.c#L86
 
 
-poisson_SpikeTrain(r,T) = SpikeTrain(poisson_spikes(r,T), T; checksorted = false)
+poisson_spiketrain(r,T) = SpikeTrain(poisson_spikes(r,T), T; checksorted = false)

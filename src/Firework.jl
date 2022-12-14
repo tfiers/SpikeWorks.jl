@@ -27,8 +27,19 @@ include("distributions.jl")
 include("misc.jl");       export to_timesteps
 include("spiketrain.jl"); export SpikeTrain
 include("eqparse.jl");    export @eqs
-include("sim.jl");        export Model, sim, init_sim, step!, SimState
-include("poisson.jl");    export poisson_spikes, poisson_SpikeTrain
+
+# include("sim__old_tmp.jl"); export Model, sim, init_sim, step!, SimState
+
+using ComponentArrays: CVector
+include("sim.jl")
+export NeuronModel,
+       Nto1Model
+
+
+include("poisson.jl")
+export poisson_spikes,
+       poisson_spiketrain
+
 include("latex.jl");      export show_eqs
 
 end # module
