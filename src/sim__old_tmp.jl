@@ -107,7 +107,7 @@ equations, handling incoming and self-generated spikes, and recording signals.
 """
 function step!(s::SimState, m::Model)
     i = (s.i[] += 1)                    # Increase step counter
-    (; Δt, x, ẋ, p, v_rec, spikes) = s  # Unpack state variables, for readability
+    (; Δt, x, ẋ, p, v_rec , spikes) = s  # Unpack state variables, for readability
     m.eval_diffeqs!(ẋ, kw(s))           # Calculate differentials
     x .+= ẋ .* Δt                       # Euler integration
     (; t, v) = x
