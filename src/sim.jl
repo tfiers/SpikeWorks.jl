@@ -7,6 +7,40 @@ I'll encapsulate and extract what's reusable later, when testing net sim.
 (What'll be: most of init & step. StepCount. The type division).
 =#
 
+function humanrepr end
+#
+macro humanrepr(T, f)
+    if hasmethod(humanrepr, T)
+        error("$humanrepr is already defined for $T")
+    end
+    # ↪ Avoid recursive definition of `humanrepr(::T)`
+    ex = quote
+        humanrepr(x::$T) = $f(x)
+        @usehumanrepr T
+    end
+    esc(ex)
+end
+macro usehumanrepr(T)
+    ex = quote
+        Base.show(io::IO, ::MIME"text/plain", x::$T) =
+            print(io, $T, " ", "[", humanrepr(x), "]")
+    end
+    esc(ex)
+end
+# This should go before func def.
+# sth like
+#   @plaintext humanrepr(x::MyType) = …
+#
+# alt: @showmimetextplain, @humanmime (lol), @showhuman,
+# ah:
+#   @showtype humanreadable(x::MyType) = …
+# ye i like this.
+# or mayb
+#   humanrepr(x::MyType) = …
+#   @showtype(MyType, humanrepr)
+# (humanrepr is then not part of the interface. and that's fine :))
+# Well, we could define! aha!:
+humanrepr
 
 @kwdef struct NeuronModel_{V,F,G,H}
     x₀              ::V   # You can type the `₀` as \_0<tab>
@@ -98,25 +132,7 @@ stepstr(i, N) = if     (i < N)   "$i/$N"
 
 
 
-function humanrepr end
-#
-# julia> @humanrepr(MyType, (x) -> "something $(x.prop)")`
-# julia> x = MyType("sweet");
-# julia> x
-# MyType [something sweet]
-#
-# (The newly defined `humanrepr` method for MyType may now be used when pretty-printing
-#  other types, too).
-macro humanrepr(T, f)
-    ex = quote
-        # Avoid recursive definition of `humanrepr(::T)`
-        if !hasmethod(humanrepr, $T)
-            humanrepr(x::$T) = $f(x)
-        end
-        Base.show(io::IO, ::MIME"text/plain", x::$T) =
-        print(io, $T, " ", "[", humanrepr(x), "]")
-    )
-    esc(ex)
+struct Nto1Model_{N<:NeuronModel,T<:SpikeTrain,F}
 end
 
 
