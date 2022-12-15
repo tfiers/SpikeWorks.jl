@@ -32,8 +32,8 @@ coba_izh_neuron = NeuronModel(
         gᵢ  = 0 * nS,  # = Sum over all inh. synapses
     ),
     # Differential equations: calculate time derivatives of simulated vars
-    # (and store them "in-place", in `Δ`).
-    (vars, Δ) -> begin
+    # (and store them "in-place", in `Dₜ`).
+    (Dₜ, vars) -> begin
         v, u, gₑ, gᵢ = vars
         # [can use `(; u, v) = vars` syntax for diff order; no @unpack needed]
 
@@ -41,12 +41,12 @@ coba_izh_neuron = NeuronModel(
         Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
 
         # Izhikevich 2D system
-        Δ.v = (k*(v-vₗ)*(v-vₜ) - u - Iₛ) / C
-        Δ.u = a*(b*(v-vₗ) - u)
+        Dₜ.v = (k*(v-vₗ)*(v-vₜ) - u - Iₛ) / C
+        Dₜ.u = a*(b*(v-vₗ) - u)
 
         # Synaptic conductance decay
-        Δ.gₑ = -gₑ / τ
-        Δ.gᵢ = -gᵢ / τ
+        Dₜ.gₑ = -gₑ / τ
+        Dₜ.gᵢ = -gᵢ / τ
     end;
     has_spiked = (vars) -> (vars.v ≥ vₛ),
     on_self_spike! = (vars) -> begin
@@ -66,31 +66,36 @@ coba_izh_neuron = NeuronModel(
     Δgᵢ = 60nS / Nᵢ
 end
 
-# i = spiketrain ID / number
-neuron_type(i) = if (i ≤ Nₑ)  :exc
-                 else         :inh
-                 end
+N = Nₑ + Nᵢ
+input_IDs = 1:N
+neuron_type(ID) = (ID ≤ Nₑ) ? :exc : :inh
 
-on_spike_arrival!(post, pre) =
-    if neuron_type(pre) == :exc
-        post.gₑ += Δgₑ
+on_spike_arrival!(vars, spike) =
+    if neuron_type(source(spike)) == :exc
+        vars.gₑ += Δgₑ
     else
-        post.gᵢ += Δgᵢ
+        vars.gᵢ += Δgᵢ
     end
-
-T  = 10seconds  # Sim length ('recording duration')
 
 # Firing rates λ for the Poisson inputs
 fr_distr = LogNormal(median = 4Hz, g = 2)
-N = Nₑ + Nᵢ
-λs = rand(fr_distr, N)
-spiketrains = [poisson_spiketrain(λ, T) for λ in λs]
+firing_rates = rand(fr_distr, N)
 
-model = Nto1Model(coba_izh_neuron, spiketrains, on_spike_arrival!)
+sim_duration = 10seconds
+
+inputs = [
+    Input(ID, poisson_SpikeTrain(λ, sim_duration), ID)
+    for (ID, λ) in zip(input_IDs, firing_rates)
+]
+
+model = Nto1Model(coba_izh_neuron, inputs, on_spike_arrival!)
+
 Δt = 0.1ms      # Sim timestep
+
 
 using Firework: CVector
 # ↪ For terser error msgs (unqualified names)
+
 
 rec = sim(model, Δt)
 # s = init_sim(model, Δt)

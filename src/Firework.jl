@@ -20,7 +20,7 @@ export @constants,  # alt name: @consts. but no, tongue twister.
        @export_all  # alt name ideas: @exportall. @batchexport.  (cannot have @export, alas).
 
 include("units.jl")
-include("spikefeed.jl")
+# include("spikefeed.jl")
 include("distributions.jl")
 # ↪ Don't export LogNormal, to not conflict with Distributions.jl
 #   Instead, use `Firework.LogNormal` to use our parametrization.
@@ -31,15 +31,19 @@ include("eqparse.jl");    export @eqs
 # include("sim__old_tmp.jl"); export Model, sim, init_sim, step!, SimState
 
 using ComponentArrays: ComponentVector
-using Base: @kwdef, RefValue
+using Base: RefValue
+using Test: @test  # Better than @assert (shows values). Hopefully ± as fast.
 include("sim.jl")
 export NeuronModel,
-       Nto1Model
+       Nto1Model,
+       Spike,
+       source,
+       sim
 
 
 include("poisson.jl")
 export poisson_spikes,
-       poisson_spiketrain
+       poisson_SpikeTrain
 
 include("latex.jl");      export show_eqs
 

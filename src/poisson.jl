@@ -32,5 +32,6 @@ end
 # ² If the provided probability here is smaller than ~1E15, we get an error (`Inf`):
 #   https://github.com/JuliaStats/Rmath-julia/blob/master/src/qpois.c#L86
 
-
-poisson_spiketrain(r,T) = SpikeTrain(poisson_spikes(r,T), T; checksorted = false)
+poisson_SpikeTrain(rate, duration, ID) = SpikeTrain(
+    poisson_spikes(rate, duration), duration, ID, already_sorted = true
+)

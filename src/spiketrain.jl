@@ -19,6 +19,8 @@ struct SpikeTrain{T}
         new(spiketimes, duration)
     end
 end
+
+# Iterator interface
 Base.IndexStyle(::SpikeTrain) = IndexLinear
 Base.getindex(t::SpikeTrain, i::Int) = t.spiketimes[i]
 Base.size(t::SpikeTrain) = size(t.spiketimes)
@@ -26,5 +28,5 @@ Base.size(t::SpikeTrain) = size(t.spiketimes)
 spiketimes(t::SpikeTrain) = t.spiketimes
 duration(t::SpikeTrain) = t.duration
 
-numspikes(t::SpikeTrain) = length(t)
-spikerate(t::SpikeTrain) = numspikes(t) / duration(t)
+nspikes(t::SpikeTrain) = length(t)
+spikerate(t::SpikeTrain) = nspikes(t) / duration(t)
