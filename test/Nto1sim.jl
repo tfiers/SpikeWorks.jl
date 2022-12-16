@@ -68,10 +68,11 @@ end
 
 N = Nₑ + Nᵢ
 input_IDs = 1:N
-neuron_type(ID) = (ID ≤ Nₑ) ? :exc : :inh
+@enum NeuronType exc inh
+neuron_type(ID) = (ID ≤ Nₑ) ? exc : inh
 
 on_spike_arrival!(vars, spike) =
-    if neuron_type(source(spike)) == :exc
+    if neuron_type(source(spike)) == exc
         vars.gₑ += Δgₑ
     else
         vars.gᵢ += Δgᵢ
@@ -84,19 +85,18 @@ firing_rates = rand(fr_distr, N)
 sim_duration = 10seconds
 
 inputs = [
-    Input(ID, poisson_SpikeTrain(λ, sim_duration), ID)
+    Nto1Input(ID, poisson_SpikeTrain(λ, sim_duration))
     for (ID, λ) in zip(input_IDs, firing_rates)
 ]
 
-model = Nto1Model(coba_izh_neuron, inputs, on_spike_arrival!)
+system = Nto1System(coba_izh_neuron, inputs, on_spike_arrival!)
 
 Δt = 0.1ms      # Sim timestep
 
-
-using Firework: CVector
-# ↪ For terser error msgs (unqualified names)
+# sim = simulate(system, Δt)
 
 
-rec = sim(model, Δt)
-# s = init_sim(model, Δt)
-# s = step!(s, m)
+using Firework: init, Simulation, step!
+
+sim = init(Simulation, system, Δt)
+# sim = step!(sim, m)
