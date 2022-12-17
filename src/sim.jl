@@ -156,7 +156,7 @@ nspikes(r::Recording) = length(r.spiketimes)
 # "a simulation" = a 'run', a stretch in time
 struct Simulation{S<:Nto1System, V}
     system       ::S
-    timestep     ::Float64
+    Δt           ::Float64
     duration     ::Float64
     stepcounter  ::Counter
     state        ::SimState{V}
@@ -176,14 +176,14 @@ progress_str(s::Simulation) = begin
 end
 @humanshow(Simulation, progress_str)
 
-Simulation(
+function Simulation(
     system    ::Nto1System,
     Δt        ::Float64;
     t₀        ::Float64 = zero(Δt),  # {We don't actually support nonzero t₀ atm: eg spikerate is wrong.}
     duration  ::Float64 = duration(system.input),
 )
     nsteps = to_timesteps(duration, Δt)
-    return Simulation(
+    Simulation(
         system,
         Δt,
         duration,
@@ -198,7 +198,6 @@ function step!(sim::Simulation{<:Nto1System})
     (; vars, Dₜvars) = state.neuron
     (; neuronmodel) = system
     neuronmodel.f!(vars, Dₜvars)          # Calculate differentials
-    Δt = sim.timestep
     vars .+= Dₜvars * Δt                  # Euler integration
     t = (state.t[] += Δt)
     rec.v[i] = vars.v                     # Record membrane voltage..

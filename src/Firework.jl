@@ -6,6 +6,9 @@ using Base: RefValue
 #    change. Better would thus be to `MyStruct{T<:Ref{Int}} myfield::T`,
 #    instead of `MyStruct myfield::RefValue{Int}`, as it is now.
 
+using Test: @test  # Better than @assert (shows values). Hopefully ± as fast.
+using Printf
+
 
 using Base.Meta: isexpr
 include("globalmacros.jl")
@@ -36,8 +39,6 @@ include("counter.jl")
 
 
 using ComponentArrays: ComponentVector, Axis
-using Test: @test  # Better than @assert (shows values). Hopefully ± as fast.
-using Printf
 using .Units: second
 include("sim.jl")
 export NeuronModel,
