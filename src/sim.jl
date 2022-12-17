@@ -7,64 +7,6 @@ I'll encapsulate and extract what's reusable later, when testing net sim.
 (What'll be: most of init & step. Counter. The type division).
 =#
 
-function humanrepr(x::T) where T
-    if hasmethod(show, Tuple{IO, MIME"text/plain", T})
-        # For existing types, that did this the 'proper', verbose way.
-        return repr(MIME("text/plain"), x)
-        # hm. maybe not.¹ otoh, if we don't do it, and people wanna re-use
-        # existing nice reprs from other packages, they need to type pirate
-        # (the type from OtherPkg, `humanrepr` from this pkg)
-        # So an alternative would be sth like
-        #    `HumanRepr.use_plaintext_show(OtherPkg.Type)`
-        # (which pushes to a global in HumanRepr pkg).
-        #
-        # ¹ why not? cause other types might eg print their typename already in the `[…]`,
-        #   so that's duplicated.
-    else
-        # If no `show(, ::MIME"text/plain"…)` is defined, Julia falls back to plain `show`,
-        # which we don't want.
-        error("$humanrepr is not defined for $T")
-    end
-end
-
-macro humanshow(T, f = humanrepr)
-    esc(:(
-        Base.show(io::IO, ::MIME"text/plain", x::$T) =
-            print(io, nameof($T), " [", $f(x), "]")
-    ))
-    # `nameof(T)`, to not have module name
-end
-
-
-struct Counter
-    N::Int
-    i::RefValue{Int}
-
-    function Counter(N, i)
-        @test 0 ≤ i ≤ N
-        new(N, Ref(convert(Int, i)))
-    end
-end
-Counter(N) = Counter(N, 0)
-
-current(c::Counter) = c.i[]
-ntotal(c::Counter) = c.N
-
-increment!(c::Counter) = (c.i[] += 1)
-hasstarted(c::Counter) = (c.i[] > 0)
-completed(c::Counter) = (c.i[] == c.N)
-progress(c::Counter) = c.i[] / c.N
-
-@humanshow(Counter)
-humanrepr(c::Counter) = (completed(c) ? countstr(c.N)
-                                      : countstr(c.i[], c.N))
-countstr(N) = "$N (complete)"
-countstr(i, N) = "$i/$N"
-
-pctfmt(frac) = @sprintf("%.0f%%", 100*frac)
-
-
-
 struct SpikeTrain
     spiketimes::Vector{Float64}
     duration::Float64
@@ -253,7 +195,7 @@ end
 function step!(sim::Simulation{<:Nto1System})
     i = increment!(sim.stepcounter)
     (; state, system, Δt, rec) = sim      # Unpack some names for readability
-    (; vars, Dₜvars) = state.neuron;
+    (; vars, Dₜvars) = state.neuron
     (; neuronmodel) = system
     neuronmodel.f!(vars, Dₜvars)          # Calculate differentials
     Δt = sim.timestep
