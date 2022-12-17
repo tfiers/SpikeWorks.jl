@@ -45,16 +45,15 @@ function init end
 
 
 struct Counter
-    i::RefValue{Int}
     N::Int
+    i::RefValue{Int}
 
-    Counter(i, N) = begin
-        i = convert(Int, i)
+    function Counter(N, i)
         @test 0 ≤ i ≤ N
-        new(Ref(i), N)
+        new(N, Ref(convert(Int, i)))
     end
 end
-Counter(N) = Counter(0, N)
+Counter(N) = Counter(N, 0)
 init(::Type{Counter}, N) = Counter(N)
 
 current(c::Counter) = c.i[]
