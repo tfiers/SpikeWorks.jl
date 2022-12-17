@@ -33,5 +33,5 @@ end
 #   https://github.com/JuliaStats/Rmath-julia/blob/master/src/qpois.c#L86
 
 poisson_SpikeTrain(rate, duration) = SpikeTrain(
-    poisson_spikes(rate, duration), duration, already_sorted = true
+    poisson_spikes(rate, duration), duration, checksorted = false
 )

@@ -78,9 +78,9 @@ struct SpikeTrain
     spiketimes::Vector{Float64}
     duration::Float64
 
-    SpikeTrain(s, d; copy = false, already_sorted = false) = begin
+    SpikeTrain(s, d; copy = false, checksorted = true) = begin
         copy && (s = deepcopy(s))
-        already_sorted || sort!(s)
+        checksorted && issorted(s) || sort!(s)
         @test first(s) ≥ 0
         @test last(s) ≤ d
         new(s, d)
@@ -386,7 +386,6 @@ simulate(system, Δt; kw...) = run!(init(Simulation, system, Δt; kw...))
 # or is it three things:
 #   (model, inputs, x₀) = system
 # Yes that sounds good.
-
 
 # rename humanrepr to humanshow. add IO arg
 
