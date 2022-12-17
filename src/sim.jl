@@ -36,14 +36,6 @@ macro humanshow(T, f = humanrepr)
 end
 
 
-"""
-    init(::Type{T}, …)
-
-Create an instance of `T` at t₀, the starting time of a [`Simulation`](@ref).
-"""
-function init end
-
-
 struct Counter
     N::Int
     i::RefValue{Int}
@@ -54,7 +46,6 @@ struct Counter
     end
 end
 Counter(N) = Counter(N, 0)
-init(::Type{Counter}, N) = Counter(N)
 
 current(c::Counter) = c.i[]
 ntotal(c::Counter) = c.N
@@ -179,12 +170,12 @@ struct NeuronState{V<:AbstractVector}
     Dₜvars  ::V  # Time derivatives of `vars` (Euler notation) [type it as D\_t<tab>]
                  # Aka dx/dt (Leibniz), x′ [\prime] (Lagrange), ẋ [\dot] (Newton)
 end
-init(::Type{NeuronState}, vars_t₀::NamedTuple) = begin
+NeuronState(vars_t₀) = begin
     x₀ = ComponentVector(vars_t₀)
-    Dₜx₀ = zero(x₀ / second)
-    return NeuronState(x₀, Dₜx₀)
+    Dₜx₀ = zero(x₀) / second
+    NeuronState(x₀, Dₜx₀)
 end
-init(::Type{NeuronState}, m::NeuronModel) = init(NeuronState, m.vars_t₀)
+NeuronState(m::NeuronModel) = NeuronState(m.vars_t₀)
 #
 # 🦜🏴‍☠️
 const CVec{Ax} = ComponentVector{Float64, Vector{Float64}, Ax}
@@ -199,15 +190,8 @@ struct SimState{V}
     t       ::RefValue{Float64}
     neuron  ::NeuronState{V}
 end
-function init(
-       ::Type{SimState},
-    t₀ ::Float64,
-    m  ::NeuronModel,
-)
-    t = Ref(t₀)
-    n = init(NeuronState, m)
-    return SimState(t, n)
-end
+SimState(t₀::Float64, m::NeuronModel) = SimState(Ref(t₀), NeuronState(m))
+
 time(s::SimState) = s.t[]
 humanrepr(s::SimState) = "t: " * fmt_time(s) * ", " * humanrepr(s.neuron)
 @humanshow(SimState)
@@ -216,22 +200,22 @@ fmt_time(x) = fmt_time(time(x))
 fmt_time(t::Float64) = @sprintf "%.3g seconds" t
 
 struct Recording
-    v          ::Vector{Float64}
+    v          ::Vector{Float64}  # Voltage signal (hardcoded var atm)
     spiketimes ::Vector{Float64}
 end
 # Initialize buffers for recording a simulation of N timesteps long
-function init(::Type{Recording}, N::Int)
+Recording(N::Int) = begin
     v = Vector{Float64}(undef, N)  # Allocate full-length
     spiketimes = Float64[]         # Allocate empty
-    return Recording(v, spiketimes)
+    Recording(v, spiketimes)
 end
 nspikes(r::Recording) = length(r.spiketimes)
 
 # "a simulation" = a 'run', a stretch in time
 struct Simulation{S<:Nto1System, V}
     system       ::S
-    duration     ::Float64
     timestep     ::Float64
+    duration     ::Float64
     stepcounter  ::Counter
     state        ::SimState{V}
     rec          ::Recording
@@ -250,38 +234,35 @@ progress_str(s::Simulation) = begin
 end
 @humanshow(Simulation, progress_str)
 
-
-
-function init(::Type{Simulation},
+Simulation(
     system    ::Nto1System,
-    timestep  ::Float64;
+    Δt        ::Float64;
+    t₀        ::Float64 = zero(Δt),  # {We don't actually support nonzero t₀ atm: eg spikerate is wrong.}
     duration  ::Float64 = duration(system.input),
-    t₀        ::Float64 = zero(timestep),  # {We don't actually support this: eg spikerate is wrong.}
 )
-    nsteps = to_timesteps(duration, timestep)
+    nsteps = to_timesteps(duration, Δt)
     return Simulation(
         system,
+        Δt,
         duration,
-        timestep,
-        init(Counter, nsteps),
-        init(SimState, t₀, system.neuronmodel),
-        init(Recording, nsteps),
+        Counter(nsteps),
+        SimState(t₀, system.neuronmodel),
+        Recording(nsteps),
     )
 end
 function step!(sim::Simulation{<:Nto1System})
-    (; system, stepcounter, state, rec) = sim  # Unpack some names for readability
-    (; vars, Dₜvars) = state.neuron
+    i = increment!(sim.stepcounter)
+    (; state, system, Δt, rec) = sim      # Unpack some names for readability
+    (; vars, Dₜvars) = state.neuron;
     (; neuronmodel) = system
-    increment!(stepcounter)
-    neuronmodel.f!(vars, Dₜvars)               # Calculate differentials
+    neuronmodel.f!(vars, Dₜvars)          # Calculate differentials
     Δt = sim.timestep
-    vars .+= Dₜvars * Δt                       # Euler integration
+    vars .+= Dₜvars * Δt                  # Euler integration
     t = (state.t[] += Δt)
-    i = current(stepcounter)
-    rec.v[i] = vars.v                          # Record membrane voltage..
+    rec.v[i] = vars.v                     # Record membrane voltage..
     if neuronmodel.has_spiked(vars)
-        push!(rec.spiketimes, t)               # ..and self-spikes.
-        neuronmodel.on_self_spike!(vars)       # Apply spike discontinuity
+        push!(rec.spiketimes, t)          # ..and self-spikes
+        neuronmodel.on_self_spike!(vars)  # Apply spike discontinuity
     end
     arrivals = get_new_spikes!(system.input, t)
     for spike in arrivals
@@ -289,27 +270,15 @@ function step!(sim::Simulation{<:Nto1System})
     end
     return sim
 end
-function run!(sim::Simulation)
-    while !completed(sim)
-        step!(sim)
+function run!(s::Simulation)
+    while !completed(s)
+        step!(s)
     end
-    return sim
+    return s
 end
-simulate(system, Δt; kw...) = run!(init(Simulation, system, Δt; kw...))
+simulate(system, Δt; kw...) = run!(Simulation(system, Δt; kw...))
 
 
-# For Revise:
-# Counter      = Counter_Rev2
-# SpikeTrain   = SpikeTrain_Rev2
-# Nto1Input    = Nto1Input_Rev2
-# Spike        = Spike_Rev2
-# SpikeFeed    = SpikeFeed_Rev2
-# NeuronModel  = NeuronModel_Rev2
-# Nto1System   = Nto1System_Rev2
-# NeuronState  = NeuronState_Rev2
-# SimState     = SimState_Rev2
-# Recording    = Recording_Rev2
-# Simulation   = Simulation_Rev2
 
 
 
@@ -394,3 +363,11 @@ simulate(system, Δt; kw...) = run!(init(Simulation, system, Δt; kw...))
 # - And those are used recursively for properties
 # You can then zoom in on properties
 # (and display multilevel if you want; colours and types, …)
+
+
+# Idea: recursive unpack
+# A function that makes a namedtuple (so, typed :)) of names of object, and within.
+#   hm, but then you get internals of dict etc.
+#   so maybe I'll just make it bespoke, for sim, with all its leaves
+#
+# Implementat: merge!(pairs_sth.(sim, sim.rec)...)
