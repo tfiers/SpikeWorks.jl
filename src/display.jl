@@ -68,8 +68,15 @@ shortcontext(io::IO) = IOContext(io, :compact => true, :limit => true)
 
 humanshow(x) = humanshow(stdout, x)
 humanshow(io::IO, x) = begin
-    print_type(io, x)
-    println()
+    # print_type(io, x)
+    # ↪ Not as good as built-in type printing.
+    # So instead, a silly hack to show the type params faded:
+    typename = string(nameof(typeof(x)))
+    print(io, typename)
+    typestr = sprint(show, typeof(x))
+    params = replace(typestr, typename => "", count = 1)
+    println(io, faded(params))
+    # Next, contents info
     if has_datasummary(x)
         print(io, faded("Summary: "), )
         _show_datasummary(io, x)
