@@ -4,7 +4,7 @@ Caveat for this file: imagine it's encapsulated in a `module SingleNeuron`.
 or equivalently, types are prefixed, like `SingleNeuronModel`, `SingleNeuronRecording`.
 
 I'll encapsulate and extract what's reusable later, when testing net sim.
-(What'll be: most of init & step. Counter. The type division).
+(What'll be: most of init & step. Counter. The ontology).
 =#
 
 struct SpikeTrain
@@ -42,6 +42,7 @@ source(s::Spike) = s.source
 
 Base.isless(x::Spike, y::Spike) = time(x) < time(y)
 
+# (This should be a type, later)
 spikevec(input::Nto1Input) = [
     Spike(t, input.ID) for t in spiketimes(input)
 ]
@@ -53,6 +54,13 @@ struct SpikeFeed
     SpikeFeed(s, d) = new(s, d, Counter(length(s)))
 end
 duration(f::SpikeFeed) = f.duration
+datasummary(f::SpikeFeed) = begin
+    i = current(f.counter)
+    N = ntotal(f.counter)
+    ((i == N) ? "all $N spikes processed"
+              : "$i/$N spikes processed")
+end
+# Multiplex different spiketrains into one 'stream'
 function SpikeFeed(inputs::AbstractVector{Nto1Input})
     spikevecs = [spikevec(i) for i in inputs]
     # Merge spikes
@@ -61,8 +69,7 @@ function SpikeFeed(inputs::AbstractVector{Nto1Input})
     max_duration = maximum([i.train.duration for i in inputs])
     return SpikeFeed(spikes, max_duration)
 end
-index_of_next(f::SpikeFeed) = current(f.counter)
-next_spike(f::SpikeFeed) = @inbounds f.spikes[index_of_next(f)]
+
 function get_new_spikes!(f::SpikeFeed, t)
     new_spikes = Spike[]
     while time(next_spike(f)) ≤ t
@@ -71,6 +78,9 @@ function get_new_spikes!(f::SpikeFeed, t)
     end
     return new_spikes
 end
+next_spike(f::SpikeFeed) = @inbounds f.spikes[index_of_next(f)]
+index_of_next(f::SpikeFeed) = current(f.counter)
+
 
 struct NeuronModel{V<:NamedTuple, F, G, H}
     vars_t₀         ::V
@@ -78,12 +88,10 @@ struct NeuronModel{V<:NamedTuple, F, G, H}
     has_spiked      ::G
     on_self_spike!  ::H
 end
-NeuronModel(    x₀, f!; has_spiked, on_self_spike!) =
+NeuronModel(x₀, f!; has_spiked, on_self_spike!) =
     NeuronModel(x₀, f!, has_spiked, on_self_spike!)
 
-abstract type Simulatable end
-
-struct Nto1System{N<:NeuronModel, F} <: Simulatable
+struct Nto1System{N<:NeuronModel, F}
     neuronmodel       ::N
     input             ::SpikeFeed
     on_spike_arrival! ::F
@@ -91,20 +99,12 @@ end
 Nto1System(m::NeuronModel, inputs::AbstractVector{Nto1Input}, f!) =
     Nto1System(m, SpikeFeed(inputs), f!)
 
-humanrepr(s::Nto1System) = proplist(s)
-@humanshow(Nto1System, proplist)
-
-keyval_str(io, name, val) = begin
-
-end
-show_proplist(io, x) = begin
-    for name in propertynames(x)
-        val = getproperty(x, name)
-        print(io, "\n  ", name, ": ")
-        print(io, applicable(humanrepr, val) ? humanrepr(val) : val)
-    end
-end
-proplist(x) = sprint(show_proplist, x; context = (:compact => true))
+@humanshow(Nto1System)
+show_datasummary(io::IO, x::Nto1System) = print(io,
+    Nto1System, ", ",
+    "x₀: ", x.neuronmodel.vars_t₀, ", ",
+    "input feed: ", datasummary(x.input),
+)
 
 
 struct NeuronState{V<:AbstractVector}
@@ -118,15 +118,7 @@ NeuronState(vars_t₀) = begin
     NeuronState(x₀, Dₜx₀)
 end
 NeuronState(m::NeuronModel) = NeuronState(m.vars_t₀)
-#
-# 🦜🏴‍☠️
-const CVec{Ax} = ComponentVector{Float64, Vector{Float64}, Ax}
-Base.show(io::IO, ::Type{CVec{Ax}}) where Ax = print(io, "CVec{", varnames(Ax) ,"}")
-varnames(::Type{Tuple{Axis{nt}}}) where nt = keys(nt)
-#
-humanrepr(n::NeuronState) = proplist(n)
 @humanshow(NeuronState)
-
 
 struct SimState{V}
     t       ::RefValue{Float64}
@@ -134,12 +126,14 @@ struct SimState{V}
 end
 SimState(t₀::Float64, m::NeuronModel) = SimState(Ref(t₀), NeuronState(m))
 
-time(s::SimState) = s.t[]
-humanrepr(s::SimState) = "t: " * fmt_time(s) * ", " * humanrepr(s.neuron)
 @humanshow(SimState)
-
+time(s::SimState) = s.t[]
+show_datasummary(io::IO, s::SimState) = print(io,
+    "t = ", fmt_time(s) * ", neuron = ", default_datasummary(s.neuron)
+)
 fmt_time(x) = fmt_time(time(x))
 fmt_time(t::Float64) = @sprintf "%.3g seconds" t
+
 
 struct Recording
     v          ::Vector{Float64}  # Voltage signal (hardcoded var atm)
@@ -152,6 +146,7 @@ Recording(N::Int) = begin
     Recording(v, spiketimes)
 end
 nspikes(r::Recording) = length(r.spiketimes)
+@humanshow(Recording)
 
 # "a simulation" = a 'run', a stretch in time
 struct Simulation{S<:Nto1System, V}
@@ -167,14 +162,14 @@ hasstarted(s::Simulation) = hasstarted(s.stepcounter)
 completed(s::Simulation) = completed(s.stepcounter)
 nspikes(s::Simulation) = nspikes(s.rec)
 spikerate(s::Simulation) = nspikes(s) / time(s)
-progress_str(s::Simulation) = begin
+datasummary(s::Simulation) = begin
     hasstarted(s) || return "not started"
     time = fmt_time(s)
     pct = pctfmt(progress(s.stepcounter))
     rate = @sprintf("%.2g", spikerate(s))
-    return "$time ($pct), $rate spikes/s"
+    return "t = $time ($pct), $rate spikes/s"
 end
-@humanshow(Simulation, progress_str)
+@humanshow(Simulation)
 
 function Simulation(
     system    ::Nto1System,
@@ -262,7 +257,7 @@ simulate(system, Δt; kw...) = run!(Simulation(system, Δt; kw...))
 # struct Time{T}
 #     t::T
 # end
-# Base.convert(::Type{Time, t) = Time(float(t))
+# Base.convert(::Type{Time, t}) = Time(float(t))
 #
 # Cool, not now (we'd have to implement many ::Float methods)
 

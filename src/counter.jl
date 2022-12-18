@@ -10,8 +10,8 @@ struct Counter
 end
 Counter(N) = Counter(N, 0)
 
-current(c::Counter) = c.i[]
 ntotal(c::Counter) = c.N
+current(c::Counter) = c.i[]
 
 increment!(c::Counter) = (c.i[] += 1)
 hasstarted(c::Counter) = (c.i[] > 0)
@@ -21,7 +21,8 @@ progress(c::Counter) = c.i[] / c.N
 pctfmt(frac) = @sprintf("%.0f%%", 100*frac)
 
 @humanshow(Counter)
-humanrepr(c::Counter) = (completed(c) ? countstr(c.N)
-                                      : countstr(c.i[], c.N))
-countstr(N) = "$N (complete)"
-countstr(i, N) = "$i/$N"
+datasummary(c::Counter) = begin
+    i, N = c.i[], c.N
+    (completed(c) ? "$N (complete)"
+                  : "$i/$N")
+end

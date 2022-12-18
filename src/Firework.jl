@@ -9,6 +9,9 @@ using Base: RefValue
 using Test: @test  # Better than @assert (shows values). Hopefully ± as fast.
 using Printf
 
+using ComponentArrays: ComponentArrays, ComponentVector, Axis
+
+
 
 using Base.Meta: isexpr
 include("globalmacros.jl")
@@ -32,13 +35,13 @@ include("misc.jl")
 export to_timesteps
 
 
+using Crayons
 include("display.jl")
 
 
 include("counter.jl")
 
 
-using ComponentArrays: ComponentVector, Axis
 using .Units: second
 include("sim.jl")
 export NeuronModel,
