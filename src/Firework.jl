@@ -6,7 +6,6 @@ using Base: RefValue
 #    change. Better would thus be to `MyStruct{T<:Ref{Int}} myfield::T`,
 #    instead of `MyStruct myfield::RefValue{Int}`, as it is now.
 
-using Test: @test  # Better than @assert (shows values). Hopefully ± as fast.
 using Printf
 
 using ComponentArrays: ComponentArrays, ComponentVector, Axis
@@ -18,6 +17,11 @@ include("globalmacros.jl")
 export @constants,  # alt name: @consts. but no, tongue twister.
        @typed,
        @export_all  # alt name ideas: @exportall. @batchexport.  (cannot have @export, alas).
+
+
+using Test: @test
+include("checkmacro.jl")
+export @check
 
 
 include("units.jl")

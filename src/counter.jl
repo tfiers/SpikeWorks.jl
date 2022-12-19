@@ -4,7 +4,7 @@ struct Counter
     i::RefValue{Int}
 
     function Counter(N, i)
-        @test 0 ≤ i ≤ N
+        @check 0 ≤ i ≤ N
         new(N, Ref(convert(Int, i)))
     end
 end
