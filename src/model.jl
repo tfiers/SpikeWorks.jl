@@ -59,10 +59,9 @@ end
 duration(f::SpikeFeed) = f.duration
 @humanshow(SpikeFeed)
 datasummary(f::SpikeFeed) = begin
-    i = current(f.counter)
-    N = ntotal(f.counter)
-    ((i == N) ? "all $N spikes processed"
-                : "$i/$N spikes processed")
+    i, N = state(f.counter)
+    (i == N ? "all $N spikes processed"
+            : "$i/$N spikes processed")
 end
 # Multiplex different spiketrains into one 'stream'
 function SpikeFeed(inputs::AbstractVector{Nto1Input})
@@ -76,14 +75,15 @@ end
 
 function get_new_spikes!(f::SpikeFeed, t)
     new_spikes = Spike[]
-    while time(next_spike(f)) ≤ t
+    while !completed(f) && time(next_spike(f)) ≤ t
         push!(new_spikes, next_spike(f))
         increment!(f.counter)
     end
     return new_spikes
 end
 next_spike(f::SpikeFeed) = @inbounds f.spikes[index_of_next(f)]
-index_of_next(f::SpikeFeed) = current(f.counter)
+index_of_next(f::SpikeFeed) = unsafe_current(f.counter) + 1
+completed(f::SpikeFeed) = completed(f.counter)
 
 
 

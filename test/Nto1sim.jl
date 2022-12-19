@@ -94,13 +94,15 @@ system = Nto1System(coba_izh_neuron, inputs, on_spike_arrival!)
 
 # sim = simulate(system, Δt)
 
-using Firework: Simulation, step!, run!, unpack, newsim
+using Firework: Simulation, step!, run!, unpack, newsim,
+                get_new_spikes!
 
 # sim = Simulation(system, Δt)
 # s = unpack(sim); nothing
 #step!(sim)
 
 new() = newsim(coba_izh_neuron, inputs, on_spike_arrival!, Δt)
-@show s0 = new()
+
+s0 = new()
 
 s = run!(new())
