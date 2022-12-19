@@ -187,23 +187,49 @@ function Simulation(
         Recording(nsteps),
     )
 end
+unpack(s::Simulation) = (;
+    s.stepcounter,
+    s.system,
+    s.state,
+    s.Δt,
+    s.rec,
+    s.state.neuron.vars,
+    s.state.neuron.Dₜvars,
+    s.system.neuronmodel,
+    s.system.input,
+    s.system.on_spike_arrival!,
+)
+# For interactive use:
+Base.getproperty(s::Simulation, name::Symbol) = (
+    name in fieldnames(Simulation) ? getfield(s, name)
+                                   : unpack(s)[name]
+)
 function step!(sim::Simulation{<:Nto1System})
-    i = increment!(sim.stepcounter)
-    (; state, system, Δt, rec) = sim      # Unpack some names for readability
-    (; vars, Dₜvars) = state.neuron
-    (; neuronmodel) = system
-    neuronmodel.f!(vars, Dₜvars)          # Calculate differentials
-    vars .+= Dₜvars * Δt                  # Euler integration
-    t = (state.t[] += Δt)
-    rec.v[i] = vars.v                     # Record membrane voltage..
-    if neuronmodel.has_spiked(vars)
-        push!(rec.spiketimes, t)          # ..and self-spikes
-        neuronmodel.on_self_spike!(vars)  # Apply spike discontinuity
-    end
-    arrivals = get_new_spikes!(system.input, t)
+    # Unpack names, for readability
+    (;
+       stepcounter, state, vars, Dₜvars,
+       Δt, rec, neuronmodel, input, system
+    ) = unpack(sim)
+    # Step
+    i = increment!(stepcounter)
+    # Handle incoming spikes
+    arrivals = get_new_spikes!(input, t)
     for spike in arrivals
         system.on_spike_arrival!(vars, spike)
     end
+    # Calculate differentials
+    neuronmodel.f!(Dₜvars, vars)
+    # Euler integration
+    vars .+= Dₜvars * Δt
+    t = (state.t[] += Δt)
+    if neuronmodel.has_spiked(vars)
+        # Record self-spikes
+        push!(rec.spiketimes, t)
+        # Apply spike discontinuity
+        neuronmodel.on_self_spike!(vars)
+    end
+    # Record membrane voltage
+    rec.v[i] = vars.v
     return sim
 end
 function run!(s::Simulation)

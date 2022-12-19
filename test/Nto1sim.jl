@@ -95,8 +95,8 @@ system = Nto1System(coba_izh_neuron, inputs, on_spike_arrival!)
 
 # sim = simulate(system, Δt)
 
-
-using Firework: Simulation, step!, run!
+using Firework: Simulation, step!, run!, unpack
 
 sim = Simulation(system, Δt)
-# sim = step!(sim, m)
+s = unpack(sim); nothing
+#step!(sim)
