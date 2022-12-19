@@ -201,18 +201,18 @@ unpack(s::Simulation) = (;
     s.system.on_spike_arrival!,
 )
 # For interactive use:
-Base.getproperty(s::Simulation, name::Symbol) = (
-    name in fieldnames(Simulation) ? getfield(s, name)
-                                   : unpack(s)[name]
-)
+# Base.getproperty(s::Simulation, name::Symbol) = (
+#     name in fieldnames(Simulation) ? getfield(s, name)
+#                                    : unpack(s)[name]
+# )
 function step!(sim::Simulation{<:Nto1System})
     # Unpack names, for readability
-    (;
-       stepcounter, state, vars, Dₜvars,
-       Δt, rec, neuronmodel, input, system
+    (; stepcounter, state, system, input,
+       neuronmodel, vars, Dₜvars, Δt, rec
     ) = unpack(sim)
     # Step
     i = increment!(stepcounter)
+    t = (state.t[] += Δt)
     # Handle incoming spikes
     arrivals = get_new_spikes!(input, t)
     for spike in arrivals
@@ -222,7 +222,6 @@ function step!(sim::Simulation{<:Nto1System})
     neuronmodel.f!(Dₜvars, vars)
     # Euler integration
     vars .+= Dₜvars * Δt
-    t = (state.t[] += Δt)
     if neuronmodel.has_spiked(vars)
         # Record self-spikes
         push!(rec.spiketimes, t)
@@ -239,13 +238,29 @@ function run!(s::Simulation)
     end
     return s
 end
-simulate(system, Δt; kw...) = run!(Simulation(system, Δt; kw...))
+# simulate(system, Δt; kw...) = run!(Simulation(system, Δt; kw...))
 
+newsim(neuron, inputs, on_spike_arrival!, Δt) =
+    Simulation(Nto1System(neuron, inputs, on_spike_arrival!), Δt)
 
+simulate(args...) = run!(newsim(args...))
 
 
 
 # ~ docdump ~
+
+# design is currently bad: Nto1System should be immutable.
+# i.e. use PoissonSpikeSource instead of concrete trains
+# (it's fine for now).
+#
+# inputs = [
+#     SpikeSource(ID, PoissonSpiker(λ))
+#     for (ID, λ) in zip(input_IDs, firing_rates)
+# ]
+# ..or sth
+
+
+# [can use `(; u, v) = vars` syntax for diff order; no @unpack needed]
 
 # Base.isless(x::Spike, y::Spike) = time(x) < time(y)
 #
@@ -262,7 +277,6 @@ simulate(system, Δt; kw...) = run!(Simulation(system, Δt; kw...))
 #   (yeah, just a wrapper in NeuronModel, used for all three F,G,H).
 # - To check: does nonzero t₀ actually work (interaction with spiketrains eg)
 #
-# - Spike struct, with isless. So no sortperm needed to mux.
 # - There's sth not quite right with NeuronModel.vars_t₀. Cause you can have model eqs,
 #   sim a bit, and then start running again, with diff "starting" values.
 #

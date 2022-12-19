@@ -163,8 +163,13 @@ varnames(::Type{Tuple{ComponentArrays.Axis{nt}}}) where nt = keys(nt)
 
 # ~~ darling dump ~~
 
+# `@show sim` right now is bad.
+# so have `@showhuman s0 = new()` do that mayb
+
 # type printing: either format (like my latexmk stdout parser)
 #                or do bracket colouring :)
+#                   Looked at parsers (RBNF.jl, CombinedParsers.jl)
+#                   not worth it: simple enough to do manually.
 #
 # Plus: fade module name too
 

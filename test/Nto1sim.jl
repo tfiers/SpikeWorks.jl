@@ -2,7 +2,7 @@ using Firework
 using Firework.Units
 using Firework: LogNormal
 
-# Neuron params
+# Neuron-model parameters
 @typed begin
     # Izhikevich params
     C  =  100    * pF        # Cell capacitance
@@ -10,7 +10,7 @@ using Firework: LogNormal
     vₗ = - 60    * mV        # Resting ('leak') membrane potential
     vₜ = - 40    * mV        # Spiking threshold (when no syn. & adaptation currents)
     a  =    0.03 / ms        # Reciprocal of time constant of adaptation current `u`
-    b  = -  2    * nS        #
+    b  = -  2    * nS        # (v-vₗ)→u coupling strength
     vₛ =   35    * mV        # Spike cutoff (defines spike time)
     vᵣ = - 50    * mV        # Reset voltage after spike
     Δu =  100    * pA        # Adaptation current inflow on self-spike
@@ -20,7 +20,7 @@ using Firework: LogNormal
     τ  =   7 * ms            # Time constant for synaptic conductances' decay
 end
 
-# Conductance-based Izhikevich neuron model
+# Conductance-based Izhikevich neuron
 coba_izh_neuron = NeuronModel(
     # Simulated variables and their initial values
     (
@@ -35,7 +35,6 @@ coba_izh_neuron = NeuronModel(
     # (and store them "in-place", in `Dₜ`).
     (Dₜ, vars) -> begin
         v, u, gₑ, gᵢ = vars
-        # [can use `(; u, v) = vars` syntax for diff order; no @unpack needed]
 
         # Conductance-based synaptic current
         Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
@@ -95,8 +94,13 @@ system = Nto1System(coba_izh_neuron, inputs, on_spike_arrival!)
 
 # sim = simulate(system, Δt)
 
-using Firework: Simulation, step!, run!, unpack
+using Firework: Simulation, step!, run!, unpack, newsim
 
-sim = Simulation(system, Δt)
-s = unpack(sim); nothing
+# sim = Simulation(system, Δt)
+# s = unpack(sim); nothing
 #step!(sim)
+
+new() = newsim(coba_izh_neuron, inputs, on_spike_arrival!, Δt)
+@show s0 = new()
+
+s = run!(new())
