@@ -42,14 +42,16 @@ include("display.jl")
 include("counter.jl")
 
 
-using .Units: second
-include("sim.jl")
+include("model.jl")
 export NeuronModel,
        Nto1Input,
        Nto1System,
        Spike,
-       source,
-       simulate
+       source
+
+using .Units: second
+include("sim.jl")
+export simulate
 
 
 include("poisson.jl")
