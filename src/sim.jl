@@ -54,6 +54,7 @@ struct SpikeFeed
     SpikeFeed(s, d) = new(s, d, Counter(length(s)))
 end
 duration(f::SpikeFeed) = f.duration
+@humanshow(SpikeFeed)
 datasummary(f::SpikeFeed) = begin
     i = current(f.counter)
     N = ntotal(f.counter)

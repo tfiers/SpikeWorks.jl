@@ -71,11 +71,16 @@ humanshow(io::IO, x) = begin
     # print_type(io, x)
     # ↪ Not as good as built-in type printing.
     # So instead, a silly hack to show the type params faded:
-    typename = string(nameof(typeof(x)))
-    print(io, typename)
     typestr = sprint(show, typeof(x))
-    params = replace(typestr, typename => "", count = 1)
-    println(io, faded(params))
+    if '{' in typestr
+        name, params = split(typestr, '{', limit = 2)
+        print(io, name)
+        print(io, faded("{"))
+        println(io, faded(params))
+    else
+        name = typestr
+        println(io, name)
+    end
     # Next, contents info
     if has_datasummary(x)
         print(io, faded("Summary: "), )
@@ -158,7 +163,10 @@ varnames(::Type{Tuple{ComponentArrays.Axis{nt}}}) where nt = keys(nt)
 
 # ~~ darling dump ~~
 
-# a todo wish: print types yes (grayed); but not too deep.
+# type printing: either format (like my latexmk stdout parser)
+#                or do bracket colouring :)
+#
+# Plus: fade module name too
 
 # function show_datasummary(io::IO, f::SpikeFeed)
 #     i = current(f.counter)
