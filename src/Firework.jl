@@ -24,7 +24,15 @@ include("checkmacro.jl")
 export @check
 
 
+using Crayons
+include("display.jl")
+
+
 include("units.jl")
+
+
+include("EI_mix.jl")
+export EIMix
 
 
 using Distributions
@@ -39,10 +47,6 @@ include("misc.jl")
 export to_timesteps
 
 
-using Crayons
-include("display.jl")
-
-
 include("counter.jl")
 
 
@@ -52,6 +56,7 @@ export NeuronModel,
        Nto1System,
        Spike,
        source
+
 
 using .Units: second
 include("sim.jl")

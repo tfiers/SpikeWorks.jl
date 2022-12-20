@@ -55,3 +55,15 @@ macro check(ex, msg = "[see test result above]")
     tryblock.args[1] = __source__  # First line of the `try` block
     return esc(trycatch)
 end
+
+
+# Wishlist:
+# - Simplify. Don't use Test. Instead extract the variables in the
+#   expression by hand, and show them.
+#   (Test is too verbose: it partly repeats the expression).
+#   So output will just be:
+#
+#       AssertionError: 0 ≤ pₑ ≤ 1
+#           pₑ = 1.66666667
+#       Stacktrace:
+#       ..

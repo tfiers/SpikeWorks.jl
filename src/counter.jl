@@ -35,8 +35,6 @@ hasstarted(c::Counter) = (c.i[] > 0)
 completed(c::Counter) = (c.i[] == c.N)
 progress(c::Counter) = c.i[] / c.N
 
-pctfmt(frac) = @sprintf("%.0f%%", 100*frac)
-
 @humanshow(Counter)
 datasummary(c::Counter) = begin
     i, N = state(c)

@@ -129,6 +129,9 @@ varnames(::Type{Tuple{ComponentArrays.Axis{nt}}}) where nt = keys(nt)
 
 
 
+pctfmt(frac) = @sprintf("%.0f%%", 100*frac)
+
+
 
 # ~~ 'the docs' ~~
 
