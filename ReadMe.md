@@ -4,7 +4,7 @@ Status: actively being developed, not ready for use.
 
 But! Feel free to read the [source](src/), and the examples in [`test/`](/test).\
 Play with it, and get in touch!\
-Do you have any specific wishes or use cases, or just an affirmation you could use this package?\
+Do you have any specific wishes or use cases, or just an affirmation you could use something like this?\
 Tell us (in GitHub 'Discussions' eg)
 
 ⋮
