@@ -4,10 +4,9 @@ struct NamedVector{T,N} <: AbstractVector{T}
     data::Vector{T}
 
     function NamedVector{T}(names, data) where T
-        # @assert length(names) == length(data)
         @check length(names) == length(data)
         names = tuple(names...)
-        vec = collect(T, data)  # Errors if conversion is not possible ✔
+        vec = collect(T, data)
         N = length(vec)
         new{T,N}(names, vec)
     end
@@ -101,6 +100,11 @@ Base.show(io::IO, el::NamedElement) = print(io, el.name, " = ", el.val)
 
 
 # [commentdump]
+
+# inspo from MutableNamedTuples.jl:
+# mayb: Base.NamedTuple(x::) =
+# and: Base.Tuple !
+# also mayb: names::Tuple{Vararg{Symbol}} ? No N.
 
 # The names-in-type way:
 #

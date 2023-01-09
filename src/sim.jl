@@ -65,9 +65,9 @@ spikerate(s::Simulation) = nspikes(s) / time(s)
 datasummary(s::Simulation) = begin
     hasstarted(s) || return "not started"
     time = fmt_time(s)
-    pct = pctfmt(progress(s.stepcounter))
-    rate = @sprintf("%.2g", spikerate(s))
-    return "t = $time ($pct), $rate spikes/s"
+    fr = @sprintf("%.2g spikes/s", spikerate(s))
+    (completed(s) ? "completed. $fr"
+                  : "t = $time, $fr")
 end
 @humanshow(Simulation)
 
@@ -147,6 +147,11 @@ simulate(args...) = run!(newsim(args...))
 
 
 # ~ docdump ~
+
+# I know what onto should be:
+# - `Simulation` -> SimState
+# - `SimState`   -> SystemState
+# - and at the end of the sim, create a SimResult (w/ a nice v-Signal eg :))
 
 # I wanna get rid of ComponentArrays: too long types
 # One option: https://github.com/MasonProtter/MutableNamedTuples.jl

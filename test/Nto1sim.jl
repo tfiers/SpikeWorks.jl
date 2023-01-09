@@ -58,30 +58,33 @@ coba_izh_neuron = NeuronModel(
 # Inputs
 
 # Params
-@typed begin
-    Nₑ = 40
-    Nᵢ = 10
-    Δgₑ = 60nS / Nₑ
-    Δgᵢ = 60nS / Nᵢ
+@typed
+    N = 100
+    EIratio = 4//1
 end
 
-N = Nₑ + Nᵢ
-input_IDs = 1:N
 @enum NeuronType exc inh
-neuron_type(ID) = (ID ≤ Nₑ) ? exc : inh
 
-on_spike_arrival!(vars, spike) =
-    if neuron_type(source(spike)) == exc
-        vars.gₑ += Δgₑ
-    else
-        vars.gᵢ += Δgᵢ
-    end
+function init_sim(N = N)
+    Nₑ, Nᵢ = groupsizes(EIMix(N, EIratio))
+    Δgₑ = 60nS / Nₑ
+    Δgᵢ = 60nS / Nᵢ
+    input_IDs = 1:N
+    neuron_type(ID) = (ID ≤ Nₑ) ? exc : inh
+    on_spike_arrival!(vars, spike) =
+        if neuron_type(source(spike)) == exc
+            vars.gₑ += Δgₑ
+        else
+            vars.gᵢ += Δgᵢ
+        end
+end
 
 # Firing rates λ for the Poisson inputs
 fr_distr = LogNormal(median = 4Hz, g = 2)
 firing_rates = rand(fr_distr, N)
 
-sim_duration = 10seconds
+# sim_duration = 10seconds
+sim_duration = 10minutes
 
 inputs = [
     Nto1Input(ID, poisson_SpikeTrain(λ, sim_duration))
@@ -95,7 +98,7 @@ system = Nto1System(coba_izh_neuron, inputs, on_spike_arrival!)
 # sim = simulate(system, Δt)
 
 using Firework: Simulation, step!, run!, unpack, newsim,
-                get_new_spikes!
+                get_new_spikes!, next_spike, index_of_next
 
 # sim = Simulation(system, Δt)
 # s = unpack(sim); nothing
@@ -103,6 +106,6 @@ using Firework: Simulation, step!, run!, unpack, newsim,
 
 new() = newsim(coba_izh_neuron, inputs, on_spike_arrival!, Δt)
 
-s0 = new()
+# s0 = new()
 
-s = run!(new())
+# s = run!(new())

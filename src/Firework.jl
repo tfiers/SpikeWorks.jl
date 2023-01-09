@@ -32,7 +32,8 @@ include("units.jl")
 
 
 include("EI_mix.jl")
-export EIMix
+export EIMix,
+       groupsizes
 
 
 using Distributions
