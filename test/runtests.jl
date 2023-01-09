@@ -1,6 +1,6 @@
-using Firework
+using SpikeWorks
 using Test
 
-@testset "Firework.jl" begin
+@testset "SpikeWorks.jl" begin
     include("globalmacros.jl")
 end

@@ -1,7 +1,7 @@
 
 module Units
 
-using ..Firework: @export_all, @constants
+using ..SpikeWorks: @export_all, @constants
 
 @export_all @constants begin
 

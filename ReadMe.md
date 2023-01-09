@@ -1,4 +1,4 @@
-# Firework
+# SpikeWorks
 
 Status: actively being developed, not ready for use.
 

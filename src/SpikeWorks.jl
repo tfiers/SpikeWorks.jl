@@ -1,4 +1,4 @@
-module Firework
+module SpikeWorks
 
 using Base: RefValue
 # ↪ `Ref` is abstract, so bad for perf as struct field. `RefValue` is the concrete subtype.
@@ -41,7 +41,7 @@ using Distributions
 #   creating a conflict.
 include("distributions.jl")
 # ↪ Don't export LogNormal, to not conflict with Distributions.jl
-#   Instead, to use our parametrization (with median and g), use `Firework.LogNormal`.
+#   Instead, to use our parametrization (with median and g), use `SpikeWorks.LogNormal`.
 
 
 include("misc.jl")

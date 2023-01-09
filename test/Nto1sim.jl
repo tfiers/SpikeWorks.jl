@@ -1,6 +1,6 @@
-using Firework
-using Firework.Units
-using Firework: LogNormal
+using SpikeWorks
+using SpikeWorks.Units
+using SpikeWorks: LogNormal
 
 # Neuron-model parameters
 @typed begin
@@ -97,7 +97,7 @@ system = Nto1System(coba_izh_neuron, inputs, on_spike_arrival!)
 
 # sim = simulate(system, Δt)
 
-using Firework: Simulation, step!, run!, unpack, newsim,
+using SpikeWorks: Simulation, step!, run!, unpack, newsim,
                 get_new_spikes!, next_spike, index_of_next
 
 # sim = Simulation(system, Δt)
