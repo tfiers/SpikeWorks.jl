@@ -262,3 +262,41 @@ end
 
 # julia> @btime fstatvec()
 #   749.000 μs (29490 allocations: 617.03 KiB)
+
+
+
+# Hello we're back.
+# Let's try MutableNamedTuple
+using MutableNamedTuples
+
+on_self_spike!(n) = begin
+    n.v = 0
+    n.u += 2
+end
+
+v_of_MNTs = [
+    MutableNamedTuple(v=randn(), u=randn())
+    for _ in 1:10_000
+];
+function fmnt()
+    for n in v_of_MNTs
+        on_self_spike!(n)
+    end
+end
+@btime fmnt()
+#   1.031 ms (39490 allocations: 929.53 KiB)
+
+# Hm, that's a pity
+
+# reset v_of_MNTs, and
+@benchmark fmnt()
+# BenchmarkTools.Trial: 3806 samples with 1 evaluation.
+#  Range (min … max):  987.700 μs …  20.634 ms  ┊ GC (min … max): 0.00% … 0.00%
+#  Time  (median):       1.156 ms               ┊ GC (median):    0.00%
+#  Time  (mean ± σ):     1.306 ms ± 703.571 μs  ┊ GC (mean ± σ):  4.96% ± 8.96%
+#
+#   ▂█▇▅▄▄▃▂▁▁                                                    ▁
+#   ███████████▇▇▇▇▇▇▅▆▁▄▅▃▁▃▁▁▁▃▁▄▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▃▄▆▆ █
+#   988 μs        Histogram: log(frequency) by time       5.73 ms <
+#
+#  Memory estimate: 929.53 KiB, allocs estimate: 39490
