@@ -21,32 +21,51 @@ using SpikeWorks: LogNormal
 end
 
 # Conductance-based Izhikevich neuron
+#
+# Simulated variables and their initial values
+@kwdef mutable struct CobaIzhNeuron
+    # Izhikevich variables
+    v   = vᵣ      # Membrane potential
+    u   = 0 * pA  # Adaptation current
+    # Synaptic conductances g
+    gₑ  = 0 * nS  # = Sum over all exc. synapses
+    gᵢ  = 0 * nS  # = Sum over all inh. synapses
+end
+
+# Conductance-based synaptic current
+# Iₛ(n::CobaIzhNeuron) = let (; v, gₑ, gᵢ) = n
+#   gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
+#
+# or:
+synaptic_current(n::CobaIzhNeuron) =
+    let (; v, gₑ, gᵢ) = n
+
+        gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
+    end
+
+#
+# Differential equations: calculate time derivatives of simulated vars
+# (and store them "in-place", in `Dₜ`).
+function update!(Dₜ, n::CobaIzhNeuron)
+    (; v, u, gₑ, gᵢ) = n
+
+    # Conductance-based synaptic current
+    Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
+
+    # Izhikevich 2D system
+    Dₜ.v = (k*(v-vₗ)*(v-vₜ) - u - Iₛ) / C
+    Dₜ.u = a*(b*(v-vₗ) - u)
+
+    # Synaptic conductance decay
+    Dₜ.gₑ = -gₑ / τ
+    Dₜ.gᵢ = -gᵢ / τ
+end
+
+has_spiked(n::CobaIzhNeuron) = (n.v ≥ vₛ)
+
+on_self_spike!(n::CobaIzhNeuron)
+
 coba_izh_neuron = NeuronModel(
-    # Simulated variables and their initial values
-    (
-        # Izhikevich variables
-        v   = vᵣ,      # Membrane potential
-        u   = 0 * pA,  # Adaptation current
-        # Synaptic conductances g
-        gₑ  = 0 * nS,  # = Sum over all exc. synapses
-        gᵢ  = 0 * nS,  # = Sum over all inh. synapses
-    ),
-    # Differential equations: calculate time derivatives of simulated vars
-    # (and store them "in-place", in `Dₜ`).
-    (Dₜ, vars) -> begin
-        v, u, gₑ, gᵢ = vars
-
-        # Conductance-based synaptic current
-        Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
-
-        # Izhikevich 2D system
-        Dₜ.v = (k*(v-vₗ)*(v-vₜ) - u - Iₛ) / C
-        Dₜ.u = a*(b*(v-vₗ) - u)
-
-        # Synaptic conductance decay
-        Dₜ.gₑ = -gₑ / τ
-        Dₜ.gᵢ = -gᵢ / τ
-    end;
     has_spiked = (vars) -> (vars.v ≥ vₛ),
     on_self_spike! = (vars) -> begin
         vars.v = vᵣ
