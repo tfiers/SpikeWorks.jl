@@ -69,8 +69,4 @@ export poisson_spikes,
        poisson_SpikeTrain
 
 
-# include("eqparse.jl");    export @eqs
-# include("latex.jl");      export show_eqs
-
-
 end # module
