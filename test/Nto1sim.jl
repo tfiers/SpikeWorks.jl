@@ -2,6 +2,8 @@ using SpikeWorks
 using SpikeWorks.Units
 using SpikeWorks: LogNormal
 
+using Base: @kwdef
+
 # Neuron-model parameters
 @typed begin
     # Izhikevich params
@@ -32,18 +34,6 @@ end
     gᵢ  = 0 * nS  # = Sum over all inh. synapses
 end
 
-# Conductance-based synaptic current
-# Iₛ(n::CobaIzhNeuron) = let (; v, gₑ, gᵢ) = n
-#   gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
-#
-# or:
-synaptic_current(n::CobaIzhNeuron) =
-    let (; v, gₑ, gᵢ) = n
-
-        gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
-    end
-
-#
 # Differential equations: calculate time derivatives of simulated vars
 # (and store them "in-place", in `Dₜ`).
 function update!(Dₜ, n::CobaIzhNeuron)
@@ -63,15 +53,10 @@ end
 
 has_spiked(n::CobaIzhNeuron) = (n.v ≥ vₛ)
 
-on_self_spike!(n::CobaIzhNeuron)
-
-coba_izh_neuron = NeuronModel(
-    has_spiked = (vars) -> (vars.v ≥ vₛ),
-    on_self_spike! = (vars) -> begin
-        vars.v = vᵣ
-        vars.u += Δu
-    end
-)
+on_self_spike!(n::CobaIzhNeuron) = begin
+    n.v = vᵣ
+    n.u += Δu
+end
 
 
 # Inputs
