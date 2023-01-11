@@ -46,8 +46,15 @@ export NeuronModel,
        Spike,
        source
 
+include("neuron_interface.jl")
+export vars,
+       Dₜvars,
+       update_derivatives!,
+       has_spiked,
+       on_self_spike!
+
 include("neuron_macro.jl")
-export @neuron
+export @NeuronModel
 
 using .Units: second
 # include("sim.jl")

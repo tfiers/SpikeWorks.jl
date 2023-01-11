@@ -22,8 +22,9 @@ end
 
 # Conductance-based Izhikevich neuron
 #
-# Define the simulated variables, and their initial values
-@neuron CobaIzhNeuron begin
+# Define a type containing the simulated variables,
+# and set their initial values
+@NeuronModel CobaIzhNeuron begin
     # Izhikevich variables
     v   = vᵣ      # Membrane potential
     u   = 0 * pA  # Adaptation current
@@ -36,8 +37,8 @@ end
 # and store them "in-place", in `Dₜ`
 function update_derivatives!(n::CobaIzhNeuron)
     # Unpack names, for readability
-    Dₜ               = n.Dₜvars
-    (; v, u, gₑ, gᵢ) = n.vars
+    (; v, u, gₑ, gᵢ) = vars(n)
+    Dₜ = Dₜvars(n)
 
     # Conductance-based synaptic current
     Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
@@ -51,11 +52,11 @@ function update_derivatives!(n::CobaIzhNeuron)
     Dₜ.gᵢ = -gᵢ / τ
 end
 
-has_spiked(n::CobaIzhNeuron) = (n.vars.v ≥ vₛ)
+has_spiked(n::CobaIzhNeuron) = (vars(n).v ≥ vₛ)
 
 on_self_spike!(n::CobaIzhNeuron) = begin
-    n.vars.v = vᵣ
-    n.vars.u += Δu
+    vars(n).v = vᵣ
+    vars(n).u += Δu
 end
 
 

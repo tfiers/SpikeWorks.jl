@@ -1,23 +1,22 @@
 # [See ../design/neuron_struct_macro.jl for an example]
 
-macro neuron(name, defblock)
-    esc(neuron_structs_def(name, defblock))
+macro NeuronModel(typename, defblock)
+    esc(neuron_structs_def(typename, defblock))
 end
 
-neuron_structs_def(name, defblock) = begin
-    TypeName = name
-    TypeName_Vars = Symbol(string(name) * "_Vars")
-    TypeName_DₜVars = Symbol(string(name) * "_DₜVars")
+neuron_structs_def(typename, defblock) = begin
+    typename_Vars = Symbol(string(typename) * "_Vars")
+    typename_DₜVars = Symbol(string(typename) * "_DₜVars")
     quote
-        @kwdef mutable struct $TypeName_Vars
+        @kwdef mutable struct $typename_Vars <: NeuronModel_Vars
             $(vars(defblock)...)
         end
-        @kwdef mutable struct $TypeName_DₜVars
+        @kwdef mutable struct $typename_DₜVars <: NeuronModel_DₜVars
             $(Dₜvars(defblock)...)
         end
-        @kwdef struct $TypeName
-            vars   ::$TypeName_Vars   = $(TypeName_Vars)()
-            Dₜvars ::$TypeName_DₜVars = $(TypeName_DₜVars)()
+        @kwdef struct $typename <: NeuronModel
+            vars   ::$typename_Vars   = $(typename_Vars)()
+            Dₜvars ::$typename_DₜVars = $(typename_DₜVars)()
         end
     end
 end
