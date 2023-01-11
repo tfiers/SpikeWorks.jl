@@ -54,58 +54,53 @@ coba_izh_neuron = NeuronModel(
     end
 )
 
+sim_duration = 10seconds
+sim_duration = 10minutes
 
-# Inputs
-
-# Params
-@typed
-    N = 100
-    EIratio = 4//1
-end
+# Firing rates λ for the Poisson inputs
+fr_distr = LogNormal(median = 4Hz, g = 2)
 
 @enum NeuronType exc inh
 
-function init_sim(N = N)
-    Nₑ, Nᵢ = groupsizes(EIMix(N, EIratio))
+input(;
+    N = 100,
+    EIratio = 4//1,
+) = begin
+    firing_rates = rand(fr_distr, N)
+    input_IDs = 1:N
+    inputs = [
+        Nto1Input(ID, poisson_SpikeTrain(λ, sim_duration))
+        for (ID, λ) in zip(input_IDs, firing_rates)
+    ]
+    # Nₑ, Nᵢ = groupsizes(EIMix(N, EIratio))
+    EImix = EIMix(N, EIratio)
+    Nₑ = EImix.Nₑ
+    Nᵢ = EImix.Nᵢ
+    neuron_type(ID) = (ID ≤ Nₑ) ? exc : inh
     Δgₑ = 60nS / Nₑ
     Δgᵢ = 60nS / Nᵢ
-    input_IDs = 1:N
-    neuron_type(ID) = (ID ≤ Nₑ) ? exc : inh
     on_spike_arrival!(vars, spike) =
         if neuron_type(source(spike)) == exc
             vars.gₑ += Δgₑ
         else
             vars.gᵢ += Δgᵢ
         end
+    return (;
+        firing_rates,
+        inputs,
+        on_spike_arrival!,
+        Nₑ,
+    )
 end
-
-# Firing rates λ for the Poisson inputs
-fr_distr = LogNormal(median = 4Hz, g = 2)
-firing_rates = rand(fr_distr, N)
-
-# sim_duration = 10seconds
-sim_duration = 10minutes
-
-inputs = [
-    Nto1Input(ID, poisson_SpikeTrain(λ, sim_duration))
-    for (ID, λ) in zip(input_IDs, firing_rates)
-]
-
-system = Nto1System(coba_izh_neuron, inputs, on_spike_arrival!)
-
 Δt = 0.1ms      # Sim timestep
-
-# sim = simulate(system, Δt)
 
 using SpikeWorks: Simulation, step!, run!, unpack, newsim,
                 get_new_spikes!, next_spike, index_of_next
-
 # sim = Simulation(system, Δt)
 # s = unpack(sim); nothing
 #step!(sim)
-
-new() = newsim(coba_izh_neuron, inputs, on_spike_arrival!, Δt)
-
-# s0 = new()
-
-# s = run!(new())
+ip = input(N=6400);
+# system = Nto1System(coba_izh_neuron, ip.inputs, ip.on_spike_arrival!)
+new() = newsim(coba_izh_neuron, ip.inputs, ip.on_spike_arrival!, Δt)
+s0 = new()
+s = run!(new())
