@@ -19,18 +19,17 @@ run!(s::Simulation) =
         step!(s)
     end
 
-step!(s::Simulation) = begin
+step!(s::Simulation) = let (; state, Δt) = s
     i = increment!(s.stepcounter)
-    (; state, Δt) = s
     t = (state.t[] += Δt)
-    for n in state.neurons
-        eulerstep!(n, Δt)
-        if has_spiked(n)
+    for neuron in state.neurons
+        eulerstep!(neuron, Δt)
+        if has_spiked(neuron, t)
             # [record t]
-            on_self_spike!(n)
+            on_self_spike!(neuron, t)
         end
-        for var in to_record(n)
-            recording[n][var][i] = vars(n)[var]
+        for var in vars_to_record(neuron)
+            rec[neuron][var][i] = neuron[var]
         end
     end
 end

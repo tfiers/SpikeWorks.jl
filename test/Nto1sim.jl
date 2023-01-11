@@ -22,8 +22,7 @@ end
 
 # Conductance-based Izhikevich neuron
 #
-# Define types containing the simulated variables,
-# and set their initial values
+# Define type and the simulated variables, and set their initial values
 @Neuron CobaIzhNeuron begin
     # Izhikevich variables
     v   = vᵣ      # Membrane potential
@@ -34,11 +33,8 @@ end
 end
 # Differential equations: calculate time derivatives of simulated vars,
 # and store them "in-place", in `Dₜ`
-function update_derivatives!(n::CobaIzhNeuron)
-    # Unpack names, for readability
-    (; v, u, gₑ, gᵢ) = vars(n)
-    Dₜ = derivatives(n)
-
+update_derivatives!(n::CobaIzhNeuron) = let (; v, u, gₑ, gᵢ) = vars(n),
+                                            Dₜ = derivatives(n)
     # Conductance-based synaptic current
     Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
 
@@ -50,14 +46,14 @@ function update_derivatives!(n::CobaIzhNeuron)
     Dₜ.gₑ = -gₑ / τ
     Dₜ.gᵢ = -gᵢ / τ
 end
-has_spiked(n::CobaIzhNeuron) = (vars(n).v ≥ vₛ)
-#
+has_spiked(n::CobaIzhNeuron) = (
+    vars(n).v ≥ vₛ
+)
 on_self_spike!(n::CobaIzhNeuron) = begin
     vars(n).v = vᵣ
     vars(n).u += Δu
 end
-
-to_record(::CobaIzhNeuron) = [:v]
+vars_to_record(::CobaIzhNeuron) = [:v]
 
 
 # Inputs
