@@ -26,6 +26,7 @@ vars(defblock) = [with_type_annotation(ex) for ex in defblock.args]
 with_type_annotation(ex::LineNumberNode) = ex
 with_type_annotation(ex::Expr) = begin
     lhs, rhs = ex.args
+    lhs isa Symbol || return ex  # If already type-annotated, eg
     :( $lhs::typeof($rhs) = $rhs )
     # rhs will be executed twice. If side effects: too bad :)
 end
