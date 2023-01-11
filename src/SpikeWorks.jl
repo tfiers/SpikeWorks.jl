@@ -54,7 +54,8 @@ export Neuron,
        derivatives,
        update_derivatives!,
        has_spiked,
-       on_self_spike!
+       on_self_spike!,
+       to_record
 
 using Base: @kwdef
 include("neuron_macro.jl")

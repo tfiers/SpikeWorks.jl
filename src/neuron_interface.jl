@@ -12,6 +12,8 @@ function update_derivatives! end
 function has_spiked end
 function on_self_spike! end
 
+to_record(::NeuronModel) = Symbol[]
+
 eulerstep!(n::Neuron, Δt) = let (; vars, Dₜvars) = n
     update_derivatives!(n)
     for i in varnames(n)
