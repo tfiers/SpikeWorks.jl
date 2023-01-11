@@ -1,7 +1,6 @@
 
 abstract type Neuron end
-abstract type NeuronVars end
-abstract type NeuronVarDerivatives end
+abstract type Vars end
 
 vars(n::Neuron) = n.vars
 derivatives(n::Neuron) = n.Dₜvars
@@ -10,9 +9,10 @@ varnames(n::Neuron) = fieldnames(typeof(vars(n)))
 
 # Allow access to simulated variables as `neuron[:v]`.
 # Shortens `getproperty(vars(neuron), x)` → `neuron[x]`
-Base.getindex(v::Neuron, s::Symbol) = vars(v)[s]
-Base.getindex(v::NeuronVars, s::Symbol) = getfield(v, s)
-Base.getindex(v::NeuronVarDerivatives, s::Symbol) = getfield(v, s)
+Base.getindex(n::Neuron, s::Symbol)     = vars(n)[s]
+Base.setindex!(n::Neuron, x, s::Symbol) = (vars(n).s = v)
+Base.getindex(v::Vars, s::Symbol)     = getfield(v, s)
+Base.setindex!(v::Vars, x, s::Symbol) = setfield!(v, s, x)
 
 function update_derivatives! end
 function has_spiked end
@@ -23,6 +23,7 @@ eulerstep!(n::Neuron, Δt) = let (; vars, Dₜvars) = n
     for i in varnames(n)
         vars[i] += Dₜvars[i] * Δt
     end
+    return n
 end
 
 # Fall-through definitions and defaults

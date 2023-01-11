@@ -8,10 +8,10 @@ neuron_structs_def(typename, defblock) = begin
     typename_Vars = Symbol(string(typename) * "_Vars")
     typename_Derivs = Symbol(string(typename) * "_Derivs")
     quote
-        @kwdef mutable struct $typename_Vars <: NeuronVars
+        @kwdef mutable struct $typename_Vars <: Vars
             $(vars(defblock)...)
         end
-        @kwdef mutable struct $typename_Derivs <: NeuronVarDerivatives
+        @kwdef mutable struct $typename_Derivs <: Vars
             $(Dₜvars(defblock)...)
         end
         @kwdef struct $typename <: Neuron

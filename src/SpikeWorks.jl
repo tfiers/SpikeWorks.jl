@@ -48,13 +48,13 @@ include("counter.jl")
 
 include("neuron_interface.jl")
 export Neuron,
-       NeuronVars,
-       NeuronVarDerivatives,
+       Vars,
        vars,
        derivatives,
        update_derivatives!,
        has_spiked,
-       on_self_spike!
+       on_self_spike!,
+       eulerstep!
 
 using Base: @kwdef
 using .Units: seconds

@@ -1,15 +1,18 @@
 using SpikeWorks
 
-@Neuron LIFNeuron begin
+@Neuron LIFNeuronn begin
     v::Float64 = 0
 end
-update_diffeqs!(n::LIFNeuron) = let Dₜ = derivatives(n), v = vars(n).v
+SpikeWorks.update_derivatives!(n::LIFNeuronn) =
+    let Dₜ = derivatives(n),
+        v = vars(n).v
+
     Dₜ.v = -v
 end
-has_spiked(n::LIFNeuron)     = (vars(n).v > 1)
-on_self_spike!(n::LIFNeuron) = (vars(n).v = 0)
+SpikeWorks.has_spiked(n::LIFNeuronn)     = (vars(n).v > 1)
+SpikeWorks.on_self_spike!(n::LIFNeuronn) = (vars(n).v = 0)
 
 # or:
-# update_diffeqs!(::LIFNeuron, Dₜ, v)
+# update_diffeqs!(::LIFNeuronn, Dₜ, v)
 #     Dₜ.v = -v
 # end
