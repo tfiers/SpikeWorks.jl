@@ -39,12 +39,12 @@ export to_timesteps
 
 include("counter.jl")
 
-include("model.jl")
-export NeuronModel,
-       Nto1Input,
-       Nto1System,
-       Spike,
-       source
+# include("model.jl")
+# export NeuronModel,
+#        Nto1Input,
+#        Nto1System,
+#        Spike,
+#        source
 
 include("neuron_interface.jl")
 export vars,
