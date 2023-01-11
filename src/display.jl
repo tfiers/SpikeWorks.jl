@@ -116,19 +116,6 @@ macro humanshow(T, f = humanshow)
 end
 
 
-# ComponentArrays types are so long (it's cause they can take whatever
-# data structures. But we only use Vector{Float64}). So let's override
-# `show` for our specific type alias. 🦜🏴‍☠️
-#
-const CVec{Ax} = ComponentVector{Float64, Vector{Float64}, Ax}
-#
-Base.show(io::IO, ::Type{CVec{Ax}}) where Ax =  # 🦜🏴‍☠️
-    print(io, "CVec{", varnames(Ax) ,"}")
-#
-varnames(::Type{Tuple{ComponentArrays.Axis{nt}}}) where nt = keys(nt)
-
-
-
 pctfmt(frac) = @sprintf("%.0f%%", 100*frac)
 
 
