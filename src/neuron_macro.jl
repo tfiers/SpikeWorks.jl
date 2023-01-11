@@ -26,9 +26,8 @@ vars(defblock) = [with_type_annotation(ex) for ex in defblock.args]
 with_type_annotation(ex::LineNumberNode) = ex
 with_type_annotation(ex::Expr) = begin
     lhs, rhs = ex.args
-    T = @eval typeof($rhs)
+    :( $lhs::typeof($rhs) = $rhs )
     # rhs will be executed twice. If side effects: too bad :)
-    :( $lhs::$(Symbol(T)) = $rhs )
 end
 
 Dₜvars(defblock) = [Dₜvar(ex) for ex in defblock.args]
