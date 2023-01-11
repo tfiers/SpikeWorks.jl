@@ -24,7 +24,7 @@ end
 #
 # Define a type containing the simulated variables,
 # and set their initial values
-@NeuronModel CobaIzhNeuron begin
+@Neuron CobaIzhNeuron begin
     # Izhikevich variables
     v   = vᵣ      # Membrane potential
     u   = 0 * pA  # Adaptation current
@@ -38,7 +38,7 @@ end
 function update_derivatives!(n::CobaIzhNeuron)
     # Unpack names, for readability
     (; v, u, gₑ, gᵢ) = vars(n)
-    Dₜ = Dₜvars(n)
+    Dₜ = derivatives(n)
 
     # Conductance-based synaptic current
     Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)

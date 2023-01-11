@@ -47,11 +47,11 @@ include("counter.jl")
 #        source
 
 include("neuron_interface.jl")
-export NeuronModel,
-       NeuronModel_Vars,
-       NeuronModel_DₜVars,
+export Neuron,
+       NeuronVars,
+       NeuronVarDerivatives,
        vars,
-       Dₜvars,
+       derivatives,
        update_derivatives!,
        has_spiked,
        on_self_spike!
@@ -59,7 +59,7 @@ export NeuronModel,
 using Base: @kwdef
 include("neuron_macro.jl")
 export @kwdef,
-       @NeuronModel
+       @Neuron
 
 
 using .Units: second

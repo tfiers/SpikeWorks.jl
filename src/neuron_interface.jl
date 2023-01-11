@@ -1,11 +1,20 @@
 
-abstract type NeuronModel end
-abstract type NeuronModel_Vars end
-abstract type NeuronModel_DₜVars end
+abstract type Neuron end
+abstract type NeuronVars end
+abstract type NeuronVarDerivatives end
 
-vars(n::NeuronModel) = n.vars
-Dₜvars(n::NeuronModel) = n.Dₜvars
+vars(n::Neuron) = n.vars
+derivatives(n::Neuron) = n.Dₜvars
+
+varnames(n::Neuron) = fieldnames(typeof(vars(n)))
 
 function update_derivatives! end
 function has_spiked end
 function on_self_spike! end
+
+eulerstep!(n::Neuron, Δt) = let (; vars, Dₜvars) = n
+    update_derivatives!(n)
+    for i in varnames(n)
+        vars[i] += Dₜvars[i] * Δt
+    end
+end
