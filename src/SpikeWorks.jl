@@ -58,10 +58,12 @@ export NeuronModel,
        Spike,
        source
 
+include("neuron_macro.jl")
+export @neuron
 
 using .Units: second
-include("sim.jl")
-export simulate
+# include("sim.jl")
+# export simulate
 
 
 include("poisson.jl")

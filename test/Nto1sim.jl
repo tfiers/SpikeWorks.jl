@@ -2,30 +2,28 @@ using SpikeWorks
 using SpikeWorks.Units
 using SpikeWorks: LogNormal
 
-using Base: @kwdef
-
 # Neuron-model parameters
 @typed begin
     # Izhikevich params
-    C  =  100    * pF        # Cell capacitance
-    k  =    0.7  * (nS/mV)   # Steepness of parabola in v̇(v)
-    vₗ = - 60    * mV        # Resting ('leak') membrane potential
-    vₜ = - 40    * mV        # Spiking threshold (when no syn. & adaptation currents)
-    a  =    0.03 / ms        # Reciprocal of time constant of adaptation current `u`
-    b  = -  2    * nS        # (v-vₗ)→u coupling strength
-    vₛ =   35    * mV        # Spike cutoff (defines spike time)
-    vᵣ = - 50    * mV        # Reset voltage after spike
-    Δu =  100    * pA        # Adaptation current inflow on self-spike
+    C  =  100    * pF    # Cell capacitance
+    k  =    0.7  * nS/mV # Steepness of parabola in v̇(v)
+    vₗ = - 60    * mV    # Resting (or 'leak') membrane potential
+    vₜ = - 40    * mV    # Spiking threshold (when no synaptic & adaptation currents)
+    a  =    0.03 / ms    # Reciprocal of time constant of adaptation current `u`
+    b  = -  2    * nS    # (v-vₗ)→u coupling strength
+    vₛ =   35    * mV    # Spike cutoff (defines spike time)
+    vᵣ = - 50    * mV    # Reset voltage after spike
+    Δu =  100    * pA    # Adaptation current inflow on self-spike
     # Conductance-based synapses
-    Eₑ =   0 * mV            # Reversal potential at excitatory synapses
-    Eᵢ = -80 * mV            # Reversal potential at inhibitory synapses
-    τ  =   7 * ms            # Time constant for synaptic conductances' decay
+    Eₑ =   0 * mV        # Reversal potential at excitatory synapses
+    Eᵢ = -80 * mV        # Reversal potential at inhibitory synapses
+    τ  =   7 * ms        # Time constant for synaptic conductances' decay
 end
 
 # Conductance-based Izhikevich neuron
 #
-# Simulated variables and their initial values
-@kwdef mutable struct CobaIzhNeuron
+# Define the simulated variables, and their initial values
+@neuron CobaIzhNeuron begin
     # Izhikevich variables
     v   = vᵣ      # Membrane potential
     u   = 0 * pA  # Adaptation current
@@ -33,11 +31,13 @@ end
     gₑ  = 0 * nS  # = Sum over all exc. synapses
     gᵢ  = 0 * nS  # = Sum over all inh. synapses
 end
-
-# Differential equations: calculate time derivatives of simulated vars
-# (and store them "in-place", in `Dₜ`).
-function update!(Dₜ, n::CobaIzhNeuron)
-    (; v, u, gₑ, gᵢ) = n
+#
+# Differential equations: calculate time derivatives of simulated vars,
+# and store them "in-place", in `Dₜ`
+function update_derivatives!(n::CobaIzhNeuron)
+    # Unpack names, for readability
+    Dₜ               = n.Dₜvars
+    (; v, u, gₑ, gᵢ) = n.vars
 
     # Conductance-based synaptic current
     Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
@@ -51,11 +51,11 @@ function update!(Dₜ, n::CobaIzhNeuron)
     Dₜ.gᵢ = -gᵢ / τ
 end
 
-has_spiked(n::CobaIzhNeuron) = (n.v ≥ vₛ)
+has_spiked(n::CobaIzhNeuron) = (n.vars.v ≥ vₛ)
 
 on_self_spike!(n::CobaIzhNeuron) = begin
-    n.v = vᵣ
-    n.u += Δu
+    n.vars.v = vᵣ
+    n.vars.u += Δu
 end
 
 
