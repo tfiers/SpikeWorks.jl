@@ -8,33 +8,24 @@ using Base: RefValue
 
 using Printf
 
-using ComponentArrays: ComponentArrays, ComponentVector, Axis
-
-
-
 using Base.Meta: isexpr
 include("globalmacros.jl")
 export @constants,  # alt name: @consts. but no, tongue twister.
        @typed,
        @export_all  # alt name ideas: @exportall. @batchexport.  (cannot have @export, alas).
 
-
 using Test: @test
 include("checkmacro.jl")
 export @check
 
-
 using Crayons
 include("display.jl")
 
-
 include("units.jl")
-
 
 include("EI_mix.jl")
 export EIMix,
        groupsizes
-
 
 using Distributions
 # ↪ Don't `@reexport Distributions`: this macro somehow also exports our own `LogNormal`,
@@ -43,13 +34,10 @@ include("distributions.jl")
 # ↪ Don't export LogNormal, to not conflict with Distributions.jl
 #   Instead, to use our parametrization (with median and g), use `SpikeWorks.LogNormal`.
 
-
 include("misc.jl")
 export to_timesteps
 
-
 include("counter.jl")
-
 
 include("model.jl")
 export NeuronModel,
@@ -69,6 +57,5 @@ using .Units: second
 include("poisson.jl")
 export poisson_spikes,
        poisson_SpikeTrain
-
 
 end # module
