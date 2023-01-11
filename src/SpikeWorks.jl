@@ -54,8 +54,7 @@ export Neuron,
        derivatives,
        update_derivatives!,
        has_spiked,
-       on_self_spike!,
-       vars_to_record
+       on_self_spike!
 
 using Base: @kwdef
 using .Units: seconds

@@ -17,7 +17,6 @@ Base.getindex(v::NeuronVarDerivatives, s::Symbol) = getfield(v, s)
 function update_derivatives! end
 function has_spiked end
 function on_self_spike! end
-function vars_to_record end
 
 eulerstep!(n::Neuron, Δt) = let (; vars, Dₜvars) = n
     update_derivatives!(n)
@@ -25,7 +24,6 @@ eulerstep!(n::Neuron, Δt) = let (; vars, Dₜvars) = n
         vars[i] += Dₜvars[i] * Δt
     end
 end
-
 
 # Fall-through definitions and defaults
 #
@@ -35,6 +33,3 @@ has_spiked(n::Neuron, t) = has_spiked(n)
 #
 # Change nothing by default
 on_self_spike!(n::Neuron) = n
-#
-# Record nothing by default
-vars_to_record(::Neuron) = Symbol[]
