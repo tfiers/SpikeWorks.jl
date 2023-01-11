@@ -58,15 +58,15 @@ export Neuron,
        vars_to_record
 
 using Base: @kwdef
+using .Units: seconds
 include("neuron_macro.jl")
-export @kwdef,
-       @Neuron
-
+export @Neuron,
+       @kwdef,
+       seconds
 
 using .Units: second
 # include("sim.jl")
 # export simulate
-
 
 include("poisson.jl")
 export poisson_spikes,

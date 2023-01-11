@@ -36,5 +36,5 @@ Dₜvar(ex) = with_type_annotation(zero_time_derivative(ex))
 zero_time_derivative(ex::LineNumberNode) = ex
 zero_time_derivative(ex::Expr) = begin
     lhs, rhs = ex.args
-    :( $lhs = zero($rhs/second))
+    :( $lhs = zero($rhs/seconds))
 end

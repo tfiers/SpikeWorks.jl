@@ -30,11 +30,11 @@ end
 # Fall-through definitions and defaults
 #
 # User may use time; but they don't have to
-update_derivatives!(n::NeuronModel, t) = update_derivatives!(n)
-has_spiked(n::NeuronModel, t) = has_spiked(n)
+update_derivatives!(n::Neuron, t) = update_derivatives!(n)
+has_spiked(n::Neuron, t) = has_spiked(n)
 #
 # Change nothing by default
-on_self_spike!(n::NeuronModel) = n
+on_self_spike!(n::Neuron) = n
 #
 # Record nothing by default
-vars_to_record(::NeuronModel) = Symbol[]
+vars_to_record(::Neuron) = Symbol[]
