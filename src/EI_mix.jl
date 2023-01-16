@@ -18,7 +18,7 @@ struct EIMix
     pᵢ::Float64
     EIratio::Rational{Int}
 
-    function EIMix(N::Integer; Nₑ::Integer)
+    function EIMix(N::Integer, Nₑ::Integer)
         @check N ≥ Nₑ ≥ 0
         Nᵢ = N - Nₑ
         pₑ = Nₑ / N
@@ -34,7 +34,7 @@ function EIMix(N::Integer, pₑ)
     @check 0 ≤ pₑ ≤ 1
     E = pₑ * N
     Nₑ = round(Int, E)
-    m = EIMix(N; Nₑ)
+    m = EIMix(N, Nₑ)
     if !isinteger(E)
         @warn """
         The provided pₑ = $pₑ
