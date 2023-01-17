@@ -63,9 +63,11 @@ end
 sim_duration = 10seconds
 sim_duration = 10minutes
 
-@kwdef struct Nto1System{T} <: System
-    neuron::T = CobaIzhNeuron()
-    input::SpikeMux
+struct Nto1System <: System
+    neuron::CobaIzhNeuron
+    exc_inputs::SpikeMux
+    inh_inputs::SpikeMux
+    unconnected::
 end
 
 # Firing rates λ for the Poisson inputs
@@ -74,12 +76,21 @@ firing_rate_distr = LogNormal(median = 4Hz, g = 2)
 @enum NeuronType exc inh
 
 "Create a new Nto1System with `N` Poisson input neurons"
-sys(N) = begin
+sys(
+    N = 100,
+    EIratio = 4//1,
+) = begin
     # Draw new firing rates
     firing_rates = rand(firing_rate_distr, N)
-    input_trains = [
-        poisson_SpikeTrain()
-    ]
+    inputs = PoissonSpikeSource.(firing_rates)
+    (; Nₑ) = EIMix(N, EIratio)
+    exc_inputs = inputs[1:Nₑ]
+    inh_inputs = inputs[Nₑ+1:end]
+    Δgₑ = 60nS / Nₑ
+    Δgᵢ = 60nS / Nᵢ
+    neuron = CobaIzhNeuron()
+    input = SpikeMux()
+    Nto1System(; input)
 end
 
 inputs = []
@@ -87,21 +98,14 @@ sys = Nto1System(neuron)
 
 
 input(;
-    N = 100,
-    EIratio = 4//1,
 ) = begin
     input_IDs = 1:N
     inputs = [
         Nto1Input(ID, poisson_SpikeTrain(λ, sim_duration))
         for (ID, λ) in zip(input_IDs, firing_rates)
     ]
-    # Nₑ, Nᵢ = groupsizes(EIMix(N, EIratio))
-    EImix = EIMix(N, EIratio)
-    Nₑ = EImix.Nₑ
-    Nᵢ = EImix.Nᵢ
     neuron_type(ID) = (ID ≤ Nₑ) ? exc : inh
-    Δgₑ = 60nS / Nₑ
-    Δgᵢ = 60nS / Nᵢ
+
     on_spike_arrival!(vars, spike) =
         if neuron_type(source(spike)) == exc
             vars.gₑ += Δgₑ
