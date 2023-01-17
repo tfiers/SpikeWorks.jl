@@ -31,9 +31,13 @@ end
     gₑ  = 0 * nS  # = Sum over all exc. synapses
     gᵢ  = 0 * nS  # = Sum over all inh. synapses
 end
+# To be able to extend another module's functions: need to qualify their names.
+# (A silent failure if you don't..)
+# (or alternatively do `import SpikeWorks: update_derivatives!, …` but that's repetitive)
+import SpikeWorks as SW
 # Differential equations: calculate time derivatives of simulated vars,
 # and store them "in-place", in `Dₜ`
-update_derivatives!(n::CobaIzhNeuron) = let (; v, u, gₑ, gᵢ) = vars(n),
+SW.update_derivatives!(n::CobaIzhNeuron) = let (; v, u, gₑ, gᵢ) = vars(n),
                                             Dₜ = derivatives(n)
     # Conductance-based synaptic current
     Iₛ = gₑ*(v-Eₑ) + gᵢ*(v-Eᵢ)
@@ -46,67 +50,80 @@ update_derivatives!(n::CobaIzhNeuron) = let (; v, u, gₑ, gᵢ) = vars(n),
     Dₜ.gₑ = -gₑ / τ
     Dₜ.gᵢ = -gᵢ / τ
 end
-has_spiked(n::CobaIzhNeuron) = (
+SW.has_spiked(n::CobaIzhNeuron) = (
     vars(n).v ≥ vₛ
 )
-on_self_spike!(n::CobaIzhNeuron) = begin
+SW.on_self_spike!(n::CobaIzhNeuron) = begin
     vars(n).v = vᵣ
     vars(n).u += Δu
 end
-vars_to_record(::CobaIzhNeuron) = [:v]
 
+# SW.vars_to_record(::CobaIzhNeuron) = [:v]
 
-# Inputs
+sim_duration = 10seconds
+sim_duration = 10minutes
 
-# Params
-@typed
-    N = 100
-    EIratio = 4//1
+@kwdef struct Nto1System{T} <: System
+    neuron::T = CobaIzhNeuron()
+    input::SpikeMux
 end
+
+# Firing rates λ for the Poisson inputs
+firing_rate_distr = LogNormal(median = 4Hz, g = 2)
 
 @enum NeuronType exc inh
 
-function init_sim(N = N)
-    Nₑ, Nᵢ = groupsizes(EIMix(N, EIratio))
+"Create a new Nto1System with `N` Poisson input neurons"
+sys(N) = begin
+    # Draw new firing rates
+    firing_rates = rand(firing_rate_distr, N)
+    input_trains = [
+        poisson_SpikeTrain()
+    ]
+end
+
+inputs = []
+sys = Nto1System(neuron)
+
+
+input(;
+    N = 100,
+    EIratio = 4//1,
+) = begin
+    input_IDs = 1:N
+    inputs = [
+        Nto1Input(ID, poisson_SpikeTrain(λ, sim_duration))
+        for (ID, λ) in zip(input_IDs, firing_rates)
+    ]
+    # Nₑ, Nᵢ = groupsizes(EIMix(N, EIratio))
+    EImix = EIMix(N, EIratio)
+    Nₑ = EImix.Nₑ
+    Nᵢ = EImix.Nᵢ
+    neuron_type(ID) = (ID ≤ Nₑ) ? exc : inh
     Δgₑ = 60nS / Nₑ
     Δgᵢ = 60nS / Nᵢ
-    input_IDs = 1:N
-    neuron_type(ID) = (ID ≤ Nₑ) ? exc : inh
     on_spike_arrival!(vars, spike) =
         if neuron_type(source(spike)) == exc
             vars.gₑ += Δgₑ
         else
             vars.gᵢ += Δgᵢ
         end
+    return (;
+        firing_rates,
+        inputs,
+        on_spike_arrival!,
+        Nₑ,
+    )
 end
-
-# Firing rates λ for the Poisson inputs
-fr_distr = LogNormal(median = 4Hz, g = 2)
-firing_rates = rand(fr_distr, N)
-
-# sim_duration = 10seconds
-sim_duration = 10minutes
-
-inputs = [
-    Nto1Input(ID, poisson_SpikeTrain(λ, sim_duration))
-    for (ID, λ) in zip(input_IDs, firing_rates)
-]
-
-system = Nto1System(coba_izh_neuron, inputs, on_spike_arrival!)
-
 Δt = 0.1ms      # Sim timestep
 
-# sim = simulate(system, Δt)
+ip = input(N=6400);
 
 using SpikeWorks: Simulation, step!, run!, unpack, newsim,
-                get_new_spikes!, next_spike, index_of_next
+                  get_new_spikes!, next_spike, index_of_next
 
-# sim = Simulation(system, Δt)
-# s = unpack(sim); nothing
-#step!(sim)
-
-new() = newsim(coba_izh_neuron, inputs, on_spike_arrival!, Δt)
+# system = Nto1System(coba_izh_neuron, ip.inputs, ip.on_spike_arrival!)
+new() = newsim(coba_izh_neuron, ip.inputs, ip.on_spike_arrival!, Δt)
 
 # s0 = new()
-
 # s = run!(new())

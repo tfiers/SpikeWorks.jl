@@ -19,7 +19,7 @@ struct EIMix
     EIratio::Rational{Int}
 
     function EIMix(N::Integer, Nₑ::Integer)
-        @check N ≥ Nₑ ≥ 0
+        @assert N ≥ Nₑ ≥ 0
         Nᵢ = N - Nₑ
         pₑ = Nₑ / N
         pᵢ = Nᵢ / N
@@ -31,7 +31,7 @@ end
 groupsizes(m::EIMix) = (; m.Nₑ, m.Nᵢ)
 
 function EIMix(N::Integer, pₑ)
-    @check 0 ≤ pₑ ≤ 1
+    @assert 0 ≤ pₑ ≤ 1
     E = pₑ * N
     Nₑ = round(Int, E)
     m = EIMix(N, Nₑ)
@@ -87,7 +87,7 @@ end
 # function EIMix(; kw...)
 #     counts = [:N, :Nₑ, :Nᵢ]
 #     fracs = [:EIratio, :pₑ, :pᵢ]
-#     @check any(in keys(kw), )
+#     @assert any(in keys(kw), )
 # end
 
 

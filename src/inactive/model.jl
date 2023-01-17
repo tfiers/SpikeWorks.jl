@@ -17,8 +17,8 @@ struct SpikeTrain
     SpikeTrain(s, d; copy = false, checksorted = true) = begin
         copy && (s = deepcopy(s))
         checksorted && issorted(s) || sort!(s)
-        @check first(s) ≥ 0
-        @check last(s) ≤ d
+        @assert first(s) ≥ 0
+        @assert last(s) ≤ d
         new(s, d)
     end
 end

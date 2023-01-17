@@ -4,7 +4,7 @@ struct Counter
     i::RefValue{Int}
 
     function Counter(N, i)
-        @check 0 ≤ i ≤ N
+        @assert 0 ≤ i ≤ N
         new(N, Ref(convert(Int, i)))
     end
 end
@@ -17,12 +17,12 @@ state(c::Counter) = (
 )
 unsafe_current(c::Counter) = c.i[]
 current(c::Counter) = begin
-    @check 0 < c.i[] ≤ c.N
+    @assert 0 < c.i[] ≤ c.N
     c.i[]
 end
 unsafe_increment!(c::Counter) = (c.i[] += 1)
 increment!(c::Counter) = begin
-    @check c.i[] < c.N
+    @assert c.i[] < c.N
     c.i[] += 1
 end
 

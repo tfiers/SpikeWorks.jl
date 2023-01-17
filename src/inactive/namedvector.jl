@@ -4,7 +4,7 @@ struct NamedVector{T,N} <: AbstractVector{T}
     data::Vector{T}
 
     function NamedVector{T}(names, data) where T
-        @check length(names) == length(data)
+        @assert length(names) == length(data)
         names = tuple(names...)
         vec = collect(T, data)
         N = length(vec)

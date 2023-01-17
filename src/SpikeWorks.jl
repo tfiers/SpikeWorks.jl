@@ -14,16 +14,15 @@ export @constants,  # alt name: @consts. but no, tongue twister.
        @typed,
        @export_all  # alt name ideas: @exportall. @batchexport.  (cannot have @export, alas).
 
-using Test: @test
-include("checkmacro.jl")
-export @check
+# using Test: @test
+# include("checkmacro.jl")
 
 using Crayons
 include("display.jl")
 
 include("units.jl")
 
-include("EI_mix.jl")
+include("EImix.jl")
 export EIMix,
        groupsizes
 
@@ -62,6 +61,9 @@ include("neuron_macro.jl")
 export @Neuron,
        @kwdef,
        seconds
+
+include("system.jl")
+export System
 
 using .Units: second
 # include("sim.jl")

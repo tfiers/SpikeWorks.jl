@@ -1,11 +1,15 @@
 
+
+
 struct SystemState{N<:Neuron}
     t       ::RefValue{Float64}
     neurons ::Vector{N}
 end
 
+struct System{N}
+
 struct Simulation{N}
-    sys          ::System
+    sys          ::System{N}
     state        ::SystemState{N}
     duration     ::Float64
     Δt           ::Float64

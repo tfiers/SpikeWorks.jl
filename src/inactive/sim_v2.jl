@@ -220,7 +220,7 @@ simulate(args...) = run!(newsim(args...))
 
 
 # NeuronState{V}(x::V, ẋ::V) where V <: AbstractVector = begin
-#     @check length(x) == length(ẋ)
+#     @assert length(x) == length(ẋ)
 #     new(x, ẋ)
 # end
 # ↓

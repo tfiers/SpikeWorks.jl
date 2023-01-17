@@ -1,5 +1,5 @@
 """
-    @check ex [msg]
+    @assert ex [msg]
 
 Fast like `@assert`¹, but showing values like `@test`.
 
@@ -16,7 +16,7 @@ The optional `msg` is what gets shown after `"AssertionError: "`
 ```
 julia> "Calculate the length of a square's sides"
        function sidelength(area)
-           @check area ≥ 0 "Imaginary squares not supported"
+           @assert area ≥ 0 "Imaginary squares not supported"
            ℓ = √area
        end;
 
